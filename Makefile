@@ -198,13 +198,13 @@ mkdirs:
 	@$(MKDIR) -p $(LIBRARIES_FOLDER)
 
 openLRSngDL.hex: $(OBJS)
-	@$(CC) -Os -Wl,--gc-sections -mmcu=$(CPU) -o openLRSng.elf $(OBJS) -L$(LIBRARIES_FOLDER) -lm
+	@$(CC) -Os -Wl,--gc-sections -mmcu=$(CPU) -o openLRSngDL.elf $(OBJS) -L$(LIBRARIES_FOLDER) -lm
 	@$(OBJCOPY) -O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load \
 		--no-change-warnings --change-section-lma .eeprom=0 \
-		openLRSng.elf openLRSng.eep
-	@$(OBJCOPY) -O ihex -R .eeprom openLRSng.elf openLRSngDL.hex
+		openLRSngDL.elf openLRSngDL.eep
+	@$(OBJCOPY) -O ihex -R .eeprom openLRSngDL.elf openLRSngDL.hex
 	@echo "NOTE: Deployment size is text + data."
-	@$(SIZE) openLRSng.elf
+	@$(SIZE) openLRSngDL.elf
 	@$(SED) "/:00000001FF/d" openLRSngDL.hex > openLRSngDLBL.hex
 	@$(CAT) bootloaders/$(BOOTLOADER) >> openLRSngDLBL.hex
 
