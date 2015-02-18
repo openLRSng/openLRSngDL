@@ -302,14 +302,13 @@ void slaveLoop()
         }
       }
 
-      // construct TX packet
-      tx_buf[0] &= MASTER_SEQ | SLAVE_SEQ;
-
+      // construct TX packet, resend if the ack was not done
       if (!((rx_buf[0] ^ tx_buf[0]) & SLAVE_SEQ) && fifoAvail(&txFifo)) {
         uint8_t i;
         for (i=0; fifoAvail(&txFifo) && (i < (bind_data.packetSize-1)); i++) {
           tx_buf[i + 1] = fifoRead(&txFifo);
         }
+        tx_buf[0] &= MASTER_SEQ | SLAVE_SEQ;
         tx_buf[0] |= 0x20 + (i-1);
         tx_buf[0] ^= SLAVE_SEQ;
       }
@@ -408,14 +407,14 @@ void masterLoop()
       }
     }
 
-    // Construct packet to be sent
+    // Construct packet to be sent, if slave did not respond resend last
     Green_LED_ON;
-    tx_buf[0] &= MASTER_SEQ | SLAVE_SEQ;
     if (!((rx_buf[0] ^ tx_buf[0]) & MASTER_SEQ) && fifoAvail(&txFifo)) {
       uint8_t i;
       for (i=0; fifoAvail(&txFifo) && (i < (bind_data.packetSize-1)); i++) {
         tx_buf[i + 1] = fifoRead(&txFifo);
       }
+      tx_buf[0] &= MASTER_SEQ | SLAVE_SEQ;
       tx_buf[0] |= 0x20 + (i-1);
       tx_buf[0] ^= MASTER_SEQ;
     }
