@@ -18,6 +18,11 @@ uint8_t linkQualityPeer = 0;
 #define BZ_FREQ 2000
 #endif
 
+void __putc(char c)
+{
+  Serial.write(c);
+}
+
 void bindMode(void)
 {
   uint32_t prevsend = millis();
@@ -64,7 +69,7 @@ void bindMode(void)
       switch (Serial.read()) {
       case '\n':
       case '\r':
-        Serial.println(F("Enter menu..."));
+        printStrLn("Enter menu...");
         handleCLI();
         init_rfm(1);
         break;
@@ -86,13 +91,13 @@ void bindMode(void)
 void bindRX(bool timeout)
 {
   uint32_t start = millis();
-  Serial.println("waiting bind...");
+  printStrLn("waiting bind...");
   init_rfm(1);
   RF_Mode = Receive;
   to_rx_mode();
   while(!timeout || ((millis() - start) < 500)) {
     if (RF_Mode == Received) {
-      Serial.println("Got pkt\n");
+      printStrLn("Got pkt\n");
       spiSendAddress(0x7f);   // Send the package read command
       uint8_t rxb = spiReadData();
       if (rxb == 'b') {
@@ -100,7 +105,7 @@ void bindRX(bool timeout)
           *(((uint8_t*) &bind_data) + i) = spiReadData();
         }
         if (bind_data.version == BINDING_VERSION) {
-          Serial.println("data good\n");
+          printStrLn("data good\n");
           rxb = 'B';
           tx_packet(&rxb, 1); // ACK that we got bound
           bindWriteEeprom();
@@ -206,13 +211,13 @@ void setup(void)
 
   checkOperatingMode();
 
-  Serial.print("OpenLRSng DL starting ");
+  printStr("OpenLRSng DL starting ");
   printVersion(version);
-  Serial.print(" on HW ");
-  Serial.print(BOARD_TYPE);
-  Serial.print(" (");
-  Serial.print(RFMTYPE);
-  Serial.print("MHz) MDOE=");
+  printStr(" on HW ");
+  printUL(BOARD_TYPE);
+  printStr(" (");
+  printUL(RFMTYPE);
+  printStr("MHz) MDOE=");
 
   setupRfmInterrupt();
   buzzerOn(BZ_FREQ);
@@ -222,9 +227,9 @@ void setup(void)
 
   delay(50);
   if (!slaveMode) {
-    Serial.println("MASTER");
+    printStrLn("MASTER");
     if (!bindReadEeprom()) {
-      Serial.println("eeprom bogus reinit....");
+      printStrLn("eeprom bogus reinit....");
       bindInitDefaults();
       bindWriteEeprom();
     }
@@ -233,7 +238,7 @@ void setup(void)
       bindMode();
     }
   } else {
-    Serial.println("SLAVE");
+    printStrLn("SLAVE");
     if (!digitalRead(BTN) || !bindReadEeprom()) {
       bindRX(false);
     } else {
@@ -242,7 +247,7 @@ void setup(void)
   }
 
   delay(50);
-  Serial.println("Entering normal mode");
+  printStrLn("Entering normal mode");
 
   start = millis();
   while ((millis() - start) < 2000);
@@ -312,7 +317,6 @@ void slaveLoop()
         }
         tx_buf[0] &= MASTER_SEQ | SLAVE_SEQ;
         tx_buf[0] |= 0x20 + (i-1);
-        Serial.print(i);
         tx_buf[0] ^= SLAVE_SEQ;
       }
 
@@ -451,7 +455,7 @@ void masterLoop()
 void loop(void)
 {
   if (spiReadRegister(0x0C) == 0) {     // detect the locked module and reboot
-    Serial.println("module locked?");
+    printStrLn("module locked?");
     Red_LED_ON;
     init_rfm(0);
     rx_reset();

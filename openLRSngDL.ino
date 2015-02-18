@@ -63,13 +63,12 @@
 
 #include <Arduino.h>
 
+#include "print.h"
 #include "version.h"
 #include "binding.h"
 #include "hardware.h"
 #include "wd.h"
 #include "common.h"
-
 #include "chpicker.h"
-
 #include "cli.h"
 #include "DL.h"

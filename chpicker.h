@@ -24,14 +24,14 @@ uint8_t chooseChannelsPerRSSI()
 
   for (n = 0; (n < MAXHOPS) && (bind_data.hopchannel[n] != 0); n++);
 
-  Serial.println("Entering adaptive channel selection, picking:");
-  Serial.println(n);
+  printStrLn("Entering adaptive channel selection, picking:");
+  printULLn(n);
   init_rfm(0);
   rx_reset();
   for (uint8_t ch=1; ch<255; ch++) {
-    Serial.print("(");
-    Serial.print(ch);
-    Serial.print("/255)\r");
+    printC('(');
+    printUL(ch);
+    printStr("/255)\r");
 
     uint32_t start = millis();
     if ((bind_data.rf_frequency + (uint32_t)ch * (uint32_t)bind_data.rf_channel_spacing * 10000UL) > bind_data.maxFrequency) {
@@ -88,11 +88,7 @@ uint8_t chooseChannelsPerRSSI()
   }
 
   for (uint8_t i = 0; i < n; i++) {
-    Serial.print(picked[i]);
-    Serial.print(',');
     bind_data.hopchannel[i] = picked[i];
   }
-  Serial.println();
-
   return 1;
 }
