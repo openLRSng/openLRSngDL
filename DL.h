@@ -173,6 +173,7 @@ SLAVE->MASTER
 #include"fifo.h"
 
 struct fifo txFifo;
+struct fifo rxFifo;
 
 void setup(void)
 {
@@ -262,6 +263,7 @@ void setup(void)
   rx_reset();
 
   fifoInit(&txFifo);
+  fifoInit(&rxFifo);
   watchdogConfig(WATCHDOG_2S);
   lastReceived=micros();
 }
@@ -297,7 +299,7 @@ void slaveLoop()
         if (rx_buf[0] & 0x20) {
           // DATA FRAME
           for (uint8_t i=0; i <= (rx_buf[0] & 0x1f); i++) {
-            Serial.write(rx_buf[1 + i]);
+            fifoWrite(&rxFifo,rx_buf[1 + i]);
           }
         }
       }
@@ -310,6 +312,7 @@ void slaveLoop()
         }
         tx_buf[0] &= MASTER_SEQ | SLAVE_SEQ;
         tx_buf[0] |= 0x20 + (i-1);
+        Serial.print(i);
         tx_buf[0] ^= SLAVE_SEQ;
       }
 
@@ -360,6 +363,8 @@ void masterLoop()
 {
   if (RF_Mode == Received) {
     // got packet
+    Red_LED_OFF;
+
     lastReceived = (micros() | 1);
 
     linkQuality |= 1;
@@ -375,7 +380,7 @@ void masterLoop()
       if (rx_buf[0] & 0x20) {
         // DATA FRAME
         for (uint8_t i=0; i <= (rx_buf[0] & 0x1f); i++) {
-          Serial.write(rx_buf[1 + i]);
+          fifoWrite(&rxFifo,rx_buf[1 + i]);
         }
       }
     }
@@ -395,8 +400,9 @@ void masterLoop()
     watchdogReset();
 
     if (lastReceived) {
-      if ((time - lastReceived) > getInterval(&bind_data)) {
+      if (((time | 1)- lastReceived) > getInterval(&bind_data)) {
         // telemetry lost
+        Red_LED_ON;
         if (!(bind_data.flags & MUTE_TX)) {
           buzzerOn(BZ_FREQ);
         }
@@ -452,11 +458,11 @@ void loop(void)
     Red_LED_OFF;
   }
 
-  while (Serial.available()) {
-    if (!fifoWrite(&txFifo,Serial.read())) {
-      Serial.println("TX DROP!");
-    }
-  }
+  if (fifoAvail(&rxFifo))
+    Serial.write(fifoRead(&rxFifo));
+
+  if (Serial.available())
+    fifoWrite(&txFifo,Serial.read());
 
   if (slaveMode) {
     slaveLoop();
