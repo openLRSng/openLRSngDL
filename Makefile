@@ -150,6 +150,8 @@ OBJS=openLRSngDL.o $(ARDUINO_LIB_OBJS) $(LIBRARIES_FOLDER)/libcore.a
 #
 # Master target
 #
+allfw: 433 868 915
+
 all: mkdirs openLRSngDL.hex
 
 #
@@ -188,7 +190,7 @@ $(LIBRARIES_FOLDER)/%.o: %.cpp
 # Other targets
 #
 clean: clean_compilation_products
-	@$(RM) -rf $(OUT_FOLDER)
+	@$(RM) -rf $(OUT_FOLDER) *~ \#*\#
 
 clean_compilation_products:
 	@$(RM) -rf $(LIBRARIES_FOLDER)
@@ -218,8 +220,6 @@ astyle:
 	$(RM) -rf $(OUT_FOLDER)/$@
 	$(MKDIR) -p $(OUT_FOLDER)/$@
 	$(foreach type, $(BOARD_TYPES), make -s RFMTYPE=$@ BOARD_TYPE=$(type) clean_compilation_products all && cp openLRSngDL.hex $(OUT_FOLDER)/$@/DL-$(type).hex && cp openLRSngDLBL.hex $(OUT_FOLDER)/$@/DL-$(type)-bl.hex;)
-	$(LS) -l $(OUT_FOLDER)
 
-allfw: 433 868 915
-	$(LS) -lR $(OUT_FOLDER)
+
 
