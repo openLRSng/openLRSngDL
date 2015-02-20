@@ -296,6 +296,8 @@ void slaveLoop()
               tx_buf[i + 1] = pktbuf[i];
             }
             pktsize=pktindex=0;
+            serialWrite(0xf0);
+            serialWrite(0xff);
           }
         } else {
           for (i=0; serialAvailable() && (i < (bind_data.packetSize-1)); i++) {
@@ -419,6 +421,8 @@ void masterLoop()
             tx_buf[i + 1] = pktbuf[i];
           }
           pktsize=pktindex=0;
+          serialWrite(0xf0);
+          serialWrite(0xff);
         }
       } else {
         for (i=0; serialAvailable() && (i < (bind_data.packetSize-1)); i++) {
