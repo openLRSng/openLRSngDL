@@ -289,12 +289,14 @@ void slaveLoop()
 
       // construct TX packet, resend if the ack was not done
       if (!((rx_buf[0] ^ tx_buf[0]) & SLAVE_SEQ)) {
-        uint8_t i;
+        uint8_t i = 0;
         if (bind_data.flags & PACKET_MODE) {
-          for (i=0; i < pktsize; i++) {
-            tx_buf[i + 1] = pktbuf[i];
+          if ((pktsize>0) && (pktindex==pktsize)) {
+            for (i=0; i < pktsize; i++) {
+              tx_buf[i + 1] = pktbuf[i];
+            }
+            pktsize=pktindex=0;
           }
-          pktsize=pktindex=0;
         } else {
           for (i=0; serialAvailable() && (i < (bind_data.packetSize-1)); i++) {
             tx_buf[i + 1] = serialRead();
@@ -410,12 +412,14 @@ void masterLoop()
     // Construct packet to be sent, if slave did not respond resend last
     Green_LED_ON;
     if (!((rx_buf[0] ^ tx_buf[0]) & MASTER_SEQ)) {
-      uint8_t i;
+      uint8_t i = 0;
       if (bind_data.flags & PACKET_MODE) {
-        for (i=0; i < pktsize; i++) {
-          tx_buf[i + 1] = pktbuf[i];
+        if ((pktsize>0) && (pktindex==pktsize)) {
+          for (i=0; i < pktsize; i++) {
+            tx_buf[i + 1] = pktbuf[i];
+          }
+          pktsize=pktindex=0;
         }
-        pktsize=pktindex=0;
       } else {
         for (i=0; serialAvailable() && (i < (bind_data.packetSize-1)); i++) {
           tx_buf[i+1] = serialRead();
@@ -472,10 +476,11 @@ void loop(void)
         } else if (pktindex == 1) {
           if ((d > 0) && (d < bind_data.packetSize)) {
             pktsize = d;
+            pktindex = 0;
           } else if (d != 0xf0) { // exclude 0xf0 for faster sync
             // INVALID SIZE
+            pktindex = 0;
           }
-          pktindex = 0;
         }
       } else {
         pktbuf[pktindex++] = d;
