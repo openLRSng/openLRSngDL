@@ -144,6 +144,13 @@ static inline void checkOperatingMode()
 uint8_t tx_buf[33];
 uint8_t rx_buf[33];
 
+uint8_t pktbuf[32];
+uint8_t pktindex;
+uint8_t pktsize;
+// pktsize==0 waiting for next packet or in preamble
+// pktindex<pktsize reading data
+// pktindex==pktsize ready to send
+
 #define MASTER_SEQ 0x80
 #define SLAVE_SEQ  0x40
 
@@ -289,6 +296,10 @@ void slaveLoop()
         tx_buf[0] ^= MASTER_SEQ;
         if (rx_buf[0] & 0x20) {
           // DATA FRAME
+          if (bind_data.flags & PACKET_MODE) {
+            serialWrite(0xf0);
+            serialWrite((rx_buf[0] & 0x1f) + 1);
+          }
           for (uint8_t i=0; i <= (rx_buf[0] & 0x1f); i++) {
             serialWrite(rx_buf[1 + i]);
           }
@@ -296,14 +307,23 @@ void slaveLoop()
       }
 
       // construct TX packet, resend if the ack was not done
-      if (!((rx_buf[0] ^ tx_buf[0]) & SLAVE_SEQ) && serialAvailable()) {
+      if (!((rx_buf[0] ^ tx_buf[0]) & SLAVE_SEQ)) {
         uint8_t i;
-        for (i=0; serialAvailable() && (i < (bind_data.packetSize-1)); i++) {
-          tx_buf[i + 1] = serialRead();
+        if (bind_data.flags & PACKET_MODE) {
+          for (i=0; i < pktsize; i++) {
+            tx_buf[i + 1] = pktbuf[i];
+          }
+          pktsize=pktindex=0;
+        } else {
+          for (i=0; serialAvailable() && (i < (bind_data.packetSize-1)); i++) {
+            tx_buf[i + 1] = serialRead();
+          }
         }
         tx_buf[0] &= MASTER_SEQ | SLAVE_SEQ;
-        tx_buf[0] |= 0x20 + (i-1);
-        tx_buf[0] ^= SLAVE_SEQ;
+        if (i) {
+          tx_buf[0] |= 0x20 + (i-1);
+          tx_buf[0] ^= SLAVE_SEQ;
+        }
       }
 
       state = 1;
@@ -369,12 +389,15 @@ void masterLoop()
       tx_buf[0] ^= SLAVE_SEQ;
       if (rx_buf[0] & 0x20) {
         // DATA FRAME
+        if (bind_data.flags & PACKET_MODE) {
+          serialWrite(0xf0);
+          serialWrite((rx_buf[0] & 0x1f) + 1);
+        }
         for (uint8_t i=0; i <= (rx_buf[0] & 0x1f); i++) {
           serialWrite(rx_buf[1 + i]);
         }
       }
     }
-
   }
 
   uint32_t time = micros();
@@ -405,14 +428,23 @@ void masterLoop()
 
     // Construct packet to be sent, if slave did not respond resend last
     Green_LED_ON;
-    if (!((rx_buf[0] ^ tx_buf[0]) & MASTER_SEQ) && serialAvailable()) {
+    if (!((rx_buf[0] ^ tx_buf[0]) & MASTER_SEQ)) {
       uint8_t i;
-      for (i=0; serialAvailable() && (i < (bind_data.packetSize-1)); i++) {
-        tx_buf[i+1] = serialRead();
+      if (bind_data.flags & PACKET_MODE) {
+        for (i=0; i < pktsize; i++) {
+          tx_buf[i + 1] = pktbuf[i];
+        }
+        pktsize=pktindex=0;
+      } else {
+        for (i=0; serialAvailable() && (i < (bind_data.packetSize-1)); i++) {
+          tx_buf[i+1] = serialRead();
+        }
       }
       tx_buf[0] &= MASTER_SEQ | SLAVE_SEQ;
-      tx_buf[0] |= 0x20 + (i-1);
-      tx_buf[0] ^= MASTER_SEQ;
+      if (i) {
+        tx_buf[0] |= 0x20 + (i-1);
+        tx_buf[0] ^= MASTER_SEQ;
+      }
     }
 
     // Send the data over RF on the next frequency
@@ -446,6 +478,28 @@ void loop(void)
     init_rfm(0);
     rx_reset();
     Red_LED_OFF;
+  }
+
+  if (bind_data.flags & PACKET_MODE) {
+    while (serialAvailable() && ((pktsize == 0) || (pktindex < pktsize))) {
+      uint8_t d = serialRead();
+      if (pktsize == 0) {
+        if (pktindex == 0) {
+          if (d == 0xf0) {
+            pktindex = 1;
+          }
+        } else if (pktindex == 1) {
+          if ((d > 0) && (d < bind_data.packetSize)) {
+            pktsize = d;
+          } else if (d != 0xf0) { // exclude 0xf0 for faster sync
+            // INVALID SIZE
+            pktindex = 0;
+          }
+        }
+      } else {
+        pktbuf[pktindex++] = d;
+      }
+    }
   }
 
   if (slaveMode) {
