@@ -111,6 +111,7 @@ void bindRX(bool timeout)
           bindWriteEeprom();
           Red_LED_ON; //signal we got bound on LED:s
           Green_LED_ON; //signal we got bound on LED:s
+          return;
         }
       }
     }
@@ -247,11 +248,9 @@ void setup(void)
   start = millis();
   while ((millis() - start) < 500);
 
-
   while (serialAvailable()) {
     serialRead();
   }
-
 
   serialInit(bind_data.serial_baudrate);
 
