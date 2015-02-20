@@ -16,7 +16,7 @@ uint32_t getInterval(struct bind_data *bd)
   // usec = (x + 15) * 8200000 / baudrate
 #define BYTES_AT_BAUD_TO_USEC(bytes, bps, div) ((uint32_t)((bytes) + (div?20:15)) * 8200000L / (uint32_t)(bps))
 
-  ret = 2 * BYTES_AT_BAUD_TO_USEC(bd->packetSize, modem_params[bd->modem_params].bps, bd->flags&DIVERSITY_ENABLED) + 2000;
+  ret = 2 * BYTES_AT_BAUD_TO_USEC(bd->packetSize, modem_params[bd->modem_params].bps,0) + 3000;
 
   // round up to ms
   ret = ((ret + 999) / 1000) * 1000;
