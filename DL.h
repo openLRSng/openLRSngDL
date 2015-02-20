@@ -238,7 +238,7 @@ void setup(void)
   printStrLn("Entering normal mode");
 
   start = millis();
-  while ((millis() - start) < 2000);
+  while ((millis() - start) < 500);
 
 
   while (serialAvailable()) {
@@ -408,7 +408,7 @@ void masterLoop()
     if (!((rx_buf[0] ^ tx_buf[0]) & MASTER_SEQ) && serialAvailable()) {
       uint8_t i;
       for (i=0; serialAvailable() && (i < (bind_data.packetSize-1)); i++) {
-        serialRead();
+        tx_buf[i+1] = serialRead();
       }
       tx_buf[0] &= MASTER_SEQ | SLAVE_SEQ;
       tx_buf[0] |= 0x20 + (i-1);

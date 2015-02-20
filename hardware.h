@@ -248,7 +248,7 @@ void setupSPI()
   pinMode(nSel_pin, OUTPUT);   //nSEL
 }
 
-#define ENABLE_RFMINTERRUPT EICRA &= 0xFC; EIMSK |= (1<<INT0)
+#define ENABLE_RFMINTERRUPT EICRA &= 0xFC; EICRA |= (1<<ISC01); EIMSK |= (1<<INT0)
 
 ISR(INT0_vect)
 {
@@ -357,7 +357,7 @@ void setupSPI()
   pinMode(nSel_pin, OUTPUT);   //nSEL
 }
 
-#define ENABLE_RFMINTERRUPT EICRA &= 0xFC; EIMSK |= (1<<INT0)
+#define ENABLE_RFMINTERRUPT EICRA &= 0xFC; EICRA |= (1<<ISC01); EIMSK |= (1<<INT0)
 
 ISR(INT0_vect)
 {
