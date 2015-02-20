@@ -11,8 +11,12 @@ void printLf()
 
 void _printStr(const char *s, bool lf)
 {
-  while (*s) __putc(*(s++));
-  if (lf) printLf();
+  while (*s) {
+    __putc(*(s++));
+  }
+  if (lf) {
+    printLf();
+  }
 }
 
 #define printStr(s) _printStr((s),0)
@@ -24,7 +28,7 @@ void _printUL(uint32_t n, bool lf)
   char b[11];
   uint32_t i=10;
   b[10]=0;
-  do{
+  do {
     b[--i] = (n % 10) + '0';
     n = n / 10;
   } while (n);

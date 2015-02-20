@@ -20,7 +20,7 @@ uint8_t linkQualityPeer = 0;
 
 void __putc(char c)
 {
-  Serial.write(c);
+  serialWriteSync(c);
 }
 
 void bindMode(void)
@@ -31,8 +31,8 @@ void bindMode(void)
 
   init_rfm(1);
 
-  while (Serial.available()) {
-    Serial.read();    // flush serial
+  while (serialAvailable()) {
+    serialRead();    // flush serial
   }
 
   Red_LED_OFF;
@@ -63,10 +63,10 @@ void bindMode(void)
       sendBinds = 1;
     }
 
-    while (Serial.available()) {
+    while (serialAvailable()) {
       Red_LED_ON;
       Green_LED_ON;
-      switch (Serial.read()) {
+      switch (serialRead()) {
       case '\n':
       case '\r':
         printStrLn("Enter menu...");
@@ -120,9 +120,9 @@ void bindRX(bool timeout)
 
 static inline void checkBND(void)
 {
-  if ((Serial.available() > 3) &&
-      (Serial.read() == 'B') && (Serial.read() == 'N') &&
-      (Serial.read() == 'D') && (Serial.read() == '!')) {
+  if ((serialAvailable() > 3) &&
+      (serialRead() == 'B') && (serialRead() == 'N') &&
+      (serialRead() == 'D') && (serialRead() == '!')) {
     buzzerOff();
     bindMode();
   }
@@ -173,13 +173,6 @@ SLAVE->MASTER
     byte2 quality
 */
 
-// Simple FIFO implementation
-#define FIFOSIZE 128
-#include"fifo.h"
-
-struct fifo txFifo;
-struct fifo rxFifo;
-
 void setup(void)
 {
   uint32_t start;
@@ -203,11 +196,7 @@ void setup(void)
   digitalWrite(SLAVE_SELECT, HIGH); // enable pullup for TX:s with open collector output
   buzzerInit();
 
-#ifdef __AVR_ATmega32U4__
-  Serial.begin(0); // Suppress warning on overflow on Leonardo
-#else
-  Serial.begin(115200);
-#endif
+  serialInit(115200);
 
   checkOperatingMode();
 
@@ -253,12 +242,12 @@ void setup(void)
   while ((millis() - start) < 2000);
 
 
-  while (Serial.available()) {
-    Serial.read();
+  while (serialAvailable()) {
+    serialRead();
   }
 
 
-  TelemetrySerial.begin(bind_data.serial_baudrate);
+  serialInit(bind_data.serial_baudrate);
 
   Red_LED_OFF;
   buzzerOff();
@@ -267,8 +256,6 @@ void setup(void)
   rfmSetChannel(RF_channel);
   rx_reset();
 
-  fifoInit(&txFifo);
-  fifoInit(&rxFifo);
   watchdogConfig(WATCHDOG_2S);
   lastReceived=micros();
 }
@@ -304,16 +291,16 @@ void slaveLoop()
         if (rx_buf[0] & 0x20) {
           // DATA FRAME
           for (uint8_t i=0; i <= (rx_buf[0] & 0x1f); i++) {
-            fifoWrite(&rxFifo,rx_buf[1 + i]);
+            serialWrite(rx_buf[1 + i]);
           }
         }
       }
 
       // construct TX packet, resend if the ack was not done
-      if (!((rx_buf[0] ^ tx_buf[0]) & SLAVE_SEQ) && fifoAvail(&txFifo)) {
+      if (!((rx_buf[0] ^ tx_buf[0]) & SLAVE_SEQ) && serialAvailable()) {
         uint8_t i;
-        for (i=0; fifoAvail(&txFifo) && (i < (bind_data.packetSize-1)); i++) {
-          tx_buf[i + 1] = fifoRead(&txFifo);
+        for (i=0; serialAvailable() && (i < (bind_data.packetSize-1)); i++) {
+          tx_buf[i + 1] = serialRead();
         }
         tx_buf[0] &= MASTER_SEQ | SLAVE_SEQ;
         tx_buf[0] |= 0x20 + (i-1);
@@ -384,7 +371,7 @@ void masterLoop()
       if (rx_buf[0] & 0x20) {
         // DATA FRAME
         for (uint8_t i=0; i <= (rx_buf[0] & 0x1f); i++) {
-          fifoWrite(&rxFifo,rx_buf[1 + i]);
+          serialWrite(rx_buf[1 + i]);
         }
       }
     }
@@ -419,10 +406,10 @@ void masterLoop()
 
     // Construct packet to be sent, if slave did not respond resend last
     Green_LED_ON;
-    if (!((rx_buf[0] ^ tx_buf[0]) & MASTER_SEQ) && fifoAvail(&txFifo)) {
+    if (!((rx_buf[0] ^ tx_buf[0]) & MASTER_SEQ) && serialAvailable()) {
       uint8_t i;
-      for (i=0; fifoAvail(&txFifo) && (i < (bind_data.packetSize-1)); i++) {
-        tx_buf[i + 1] = fifoRead(&txFifo);
+      for (i=0; serialAvailable() && (i < (bind_data.packetSize-1)); i++) {
+        serialRead();
       }
       tx_buf[0] &= MASTER_SEQ | SLAVE_SEQ;
       tx_buf[0] |= 0x20 + (i-1);
@@ -461,12 +448,6 @@ void loop(void)
     rx_reset();
     Red_LED_OFF;
   }
-
-  if (fifoAvail(&rxFifo))
-    Serial.write(fifoRead(&rxFifo));
-
-  if (Serial.available())
-    fifoWrite(&txFifo,Serial.read());
 
   if (slaveMode) {
     slaveLoop();

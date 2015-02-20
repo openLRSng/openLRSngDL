@@ -48,8 +48,8 @@ void scannerMode(void)
   to_rx_mode();
 
   while (startFreq != 1000) { // if startFreq == 1000, break (used to exit scannerMode)
-    while (Serial.available()) {
-      c = Serial.read();
+    while (serialAvailable()) {
+      c = serialRead();
 
       switch (c) {
       case 'D':

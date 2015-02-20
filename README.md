@@ -25,16 +25,13 @@ SUPPORTED HW:
   - RX_BOARD_TYPE 5 (Arduino Mini/nano 328 16MHz)
     - DTFUHF/HawkEye 4ch/6ch RX
 
-  - TX_BOARD_TYPE 6 (Arduino Leonardo)
-    - DTFUHF/HawkEye deluxe TX
-
   - RX_BOARD_TYPE 7
     - Brotronics PowerTowerRX
 
   - RX_BOARD_TYPE 8
     - openLRSng microRX
 
-  Receiver pin functiontions are mapped using the configurator or CLI interface.
+    Notably the 32u4 based unit is not currently supported for simplicity.
 
 SOFTWARE CONFIGURATION:
 =======================

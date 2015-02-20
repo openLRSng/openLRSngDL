@@ -56,8 +56,8 @@ uint32_t getValue(const char *q, uint32_t min, uint32_t max)
     printStr("): ");
     printStr(linebuf);
     printStr("  \b\b");
-    while (!Serial.available());
-    char c = Serial.read();
+    while (!serialAvailable());
+    char c = serialRead();
     if ((c >= '0') && (c <= '9')) {
       if (len < 15) {
         linebuf[len++]=c;
@@ -89,12 +89,12 @@ void handleCLI()
 {
   cliActive = 1;
 
-  while (Serial.available() && Serial.read());
+  while (serialAvailable() && serialRead());
 
   while (cliActive) {
     show();
-    while (!Serial.available());
-    char c = tolower(Serial.read());
+    while (!serialAvailable());
+    char c = tolower(serialRead());
     bool valid = false;
     bool validShow = true;
     uint32_t   v;
