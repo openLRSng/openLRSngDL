@@ -248,10 +248,17 @@ void setupSPI()
   pinMode(nSel_pin, OUTPUT);   //nSEL
 }
 
-#define IRQ_interrupt 0
-void setupRfmInterrupt()
+#define ENABLE_RFMINTERRUPT EICRA &= 0xFC; EIMSK |= (1<<INT0)
+
+ISR(INT0_vect)
 {
-  attachInterrupt(IRQ_interrupt, RFM22B_Int, FALLING);
+  if (RF_Mode == Transmit) {
+    RF_Mode = Transmitted;
+  }
+
+  if (RF_Mode == Receive) {
+    RF_Mode = Received;
+  }
 }
 
 #endif
