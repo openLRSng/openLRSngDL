@@ -27,7 +27,9 @@ void show()
   printULLn(bind_data.packetSize - 1);
   printStr("h) magic:           ");
   printULLn(bind_data.rf_magic);
-  printStr("i) hopschs: ");
+  printStr("i) packetmode     : ");
+  printStrLn((bind_data.flags & PACKET_MODE)?"Enabled":"Disabled");
+  printStr("j) hopschs: ");
   for (uint8_t i=0; (i<MAXHOPS) && (bind_data.hopchannel[i]); i++) {
     if (i) {
       printC(',');
@@ -35,8 +37,6 @@ void show()
     printUL(bind_data.hopchannel[i]);
   }
   printLf();
-  printStr("j) packetmode : ");
-  printStrLn((bind_data.flags & PACKET_MODE)?"Enabled":"Disabled");
   printStr("Packet interval: ");
   printUL(getInterval(&bind_data));
   printStr("us   rate: ");
@@ -164,7 +164,11 @@ void handleCLI()
         valid = true;
       }
       break;
-    case 'i': {
+    case 'i':
+      bind_data.flags ^= PACKET_MODE;
+      valid = 1;
+      break;
+    case 'j': {
       printStrLn("Enter channels one by one (1-254), invalid value or just enter to finish");
       uint8_t i=0;
       do {
@@ -200,10 +204,6 @@ void handleCLI()
       } while (v);
     }
     break;
-    case 'j':
-      bind_data.flags ^= PACKET_MODE;
-      valid = 1;
-      break;
     case 'p':
       printStrLn("Hop channel frequencies:");
       for (uint8_t i=0; (i<MAXHOPS) && (bind_data.hopchannel[i]); i++) {
