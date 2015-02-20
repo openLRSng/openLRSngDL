@@ -24,7 +24,7 @@ void show()
   printUL(modem_params[bind_data.modem_params].bps);
   printStrLn("bps)");
   printStr("g) packet size:     ");
-  printULLn(bind_data.packetSize);
+  printULLn(bind_data.packetSize - 1);
   printStr("h) magic:           ");
   printULLn(bind_data.rf_magic);
   printStr("i) hopschs: ");
@@ -34,6 +34,15 @@ void show()
     }
     printUL(bind_data.hopchannel[i]);
   }
+  printLf();
+  printStr("j) packetmode : ");
+  printStrLn((bind_data.flags & PACKET_MODE)?"Enabled":"Disabled");
+  printStr("Packet interval: ");
+  printUL(getInterval(&bind_data));
+  printStr("us   rate: ");
+  printUL(1000000UL/getInterval(&bind_data));
+  printStrLn("Hz");
+
   printLf();
   printStrLn("[s]ave [q]uit [p]rint ch freqs");
   printStrLn("Randomize hops per: [r]ssi [u]random");
@@ -142,9 +151,9 @@ void handleCLI()
       }
       break;
     case 'g':
-      v = getValue("New packet size", 9, 33);
+      v = getValue("New packet size", 8, 32);
       if (v != INVALID) {
-        bind_data.packetSize = v;
+        bind_data.packetSize = v + 1;
         valid = true;
       }
       break;
@@ -191,6 +200,10 @@ void handleCLI()
       } while (v);
     }
     break;
+    case 'j':
+      bind_data.flags ^= PACKET_MODE;
+      valid = 1;
+      break;
     case 'p':
       printStrLn("Hop channel frequencies:");
       for (uint8_t i=0; (i<MAXHOPS) && (bind_data.hopchannel[i]); i++) {
@@ -215,6 +228,7 @@ void handleCLI()
       printStrLn("SAVED!!");
     // fallthru
     case 'q':
+      bindReadEeprom();
       cliActive = false;
       validShow = false;
       break;

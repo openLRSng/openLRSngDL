@@ -22,12 +22,13 @@
 //  2 -- 19200bps, medium range
 #define DEFAULT_DATARATE 2
 #define DEFAULT_BAUDRATE 115200
-#define DEFAULT_PACKET_SIZE 32
+#define DEFAULT_PACKET_SIZE 33
 
 // CONFIG flag masks
 #define WATCHDOG_USED       0x80 // read only flag, only sent to configurator
 #define DIVERSITY_ENABLED   0x40
 #define MUTE_TX             0x20
+#define PACKET_MODE         0x01
 #define DEFAULT_FLAGS       0x00
 
 #define BINDING_POWER     0x06 // not lowest since may result fail with RFM23BP
