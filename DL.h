@@ -76,9 +76,6 @@ void bindMode(void)
       case '#':
         scannerMode();
         break;
-      case 'B':
-        //binaryMode();
-        break;
       default:
         break;
       }
@@ -116,16 +113,6 @@ void bindRX(bool timeout)
       }
     }
 
-  }
-}
-
-static inline void checkBND(void)
-{
-  if ((serialAvailable() > 3) &&
-      (serialRead() == 'B') && (serialRead() == 'N') &&
-      (serialRead() == 'D') && (serialRead() == '!')) {
-    buzzerOff();
-    bindMode();
   }
 }
 
@@ -229,7 +216,6 @@ void setup(void)
       bindInitDefaults();
       bindWriteEeprom();
     }
-    checkBND();
     if (!digitalRead(BTN)) {
       bindMode();
     }
