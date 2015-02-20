@@ -133,8 +133,8 @@ uint8_t tx_buf[33];
 uint8_t rx_buf[33];
 
 uint8_t pktbuf[32];
-uint8_t pktindex;
-uint8_t pktsize;
+uint8_t pktindex = 0;
+uint8_t pktsize  = 0;
 // pktsize==0 waiting for next packet or in preamble
 // pktindex<pktsize reading data
 // pktindex==pktsize ready to send
@@ -170,8 +170,6 @@ SLAVE->MASTER
 
 void setup(void)
 {
-  uint32_t start;
-
   watchdogConfig(WATCHDOG_OFF);
 
   setupSPI();
@@ -228,13 +226,9 @@ void setup(void)
     }
   }
 
-  delay(50);
   printStrLn("Entering normal mode");
 
-  while (serialAvailable()) {
-    serialRead();
-  }
-
+  serialFlush();
   serialInit(bind_data.serial_baudrate);
 
   Red_LED_OFF;

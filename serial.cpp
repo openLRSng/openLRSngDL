@@ -81,7 +81,9 @@ uint8_t serialRead()
 
 void serialFlush()
 {
-  while (serialAvailable()) serialRead();
+  while (serialAvailable()) {
+    serialRead();
+  }
   while (txActive && !(UCSR0A & (1<<TXC0)));
   txActive = false;
 }
