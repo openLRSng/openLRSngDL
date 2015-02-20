@@ -29,6 +29,7 @@
 #define DIVERSITY_ENABLED   0x40
 #define MUTE_TX             0x20
 #define PACKET_MODE         0x01
+#define IDLEPACKET_MODE     0x02
 #define DEFAULT_FLAGS       0x00
 
 #define BINDING_POWER     0x06 // not lowest since may result fail with RFM23BP

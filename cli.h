@@ -29,7 +29,9 @@ void show()
   printULLn(bind_data.rf_magic);
   printStr("i) packetmode     : ");
   printStrLn((bind_data.flags & PACKET_MODE)?"Enabled":"Disabled");
-  printStr("j) hopschs: ");
+  printStr("j) idlepackets    : ");
+  printStrLn((bind_data.flags & IDLEPACKET_MODE)?"Enabled":"Disabled");
+  printStr("k) hopschs: ");
   for (uint8_t i=0; (i<MAXHOPS) && (bind_data.hopchannel[i]); i++) {
     if (i) {
       printC(',');
@@ -168,7 +170,11 @@ void handleCLI()
       bind_data.flags ^= PACKET_MODE;
       valid = 1;
       break;
-    case 'j': {
+    case 'j':
+      bind_data.flags ^= IDLEPACKET_MODE;
+      valid = 1;
+      break;
+    case 'k': {
       printStrLn("Enter channels one by one (1-254), invalid value or just enter to finish");
       uint8_t i=0;
       do {
