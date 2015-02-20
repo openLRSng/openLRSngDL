@@ -474,8 +474,8 @@ void loop(void)
             pktsize = d;
           } else if (d != 0xf0) { // exclude 0xf0 for faster sync
             // INVALID SIZE
-            pktindex = 0;
           }
+          pktindex = 0;
         }
       } else {
         pktbuf[pktindex++] = d;
