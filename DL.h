@@ -231,9 +231,6 @@ void setup(void)
   delay(50);
   printStrLn("Entering normal mode");
 
-  start = millis();
-  while ((millis() - start) < 500);
-
   while (serialAvailable()) {
     serialRead();
   }
@@ -246,6 +243,11 @@ void setup(void)
   init_rfm(0);
   rfmSetChannel(RF_channel);
   rx_reset();
+
+  if (slaveMode) {
+    to_rx_mode();
+    RF_Mode = Receive;
+  }
 
   watchdogConfig(WATCHDOG_2S);
   lastReceived=micros();
