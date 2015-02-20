@@ -208,7 +208,6 @@ void setup(void)
   printUL(RFMTYPE);
   printStr("MHz) MDOE=");
 
-  setupRfmInterrupt();
   buzzerOn(BZ_FREQ);
   digitalWrite(BTN, HIGH);
   Red_LED_ON ;

@@ -118,7 +118,7 @@ ARDUINO_VARIANT_PATH=$(ARDUINO_PATH)/hardware/arduino/variants/$(VARIANT)
 # Arduino library files used, compilation settings.
 #
 ARDUINO_CORELIB_PATH=$(ARDUINO_PATH)/hardware/arduino/cores/arduino/
-ARDUINO_CORELIB_SRCS=WInterrupts.c wiring.c wiring_digital.c main.cpp
+ARDUINO_CORELIB_SRCS=wiring.c wiring_digital.c main.cpp
 ARDUINO_CORELIB_OBJS= $(patsubst %.c, libraries/%.o, $(patsubst %.cpp, libraries/%.o, $(ARDUINO_CORELIB_SRCS)))
 
 

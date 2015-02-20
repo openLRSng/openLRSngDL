@@ -8,17 +8,6 @@
 
 volatile uint8_t RF_Mode = 0;
 
-void RFM22B_Int()
-{
-  if (RF_Mode == Transmit) {
-    RF_Mode = Transmitted;
-  }
-
-  if (RF_Mode == Receive) {
-    RF_Mode = Received;
-  }
-}
-
 #define RX_FLYTRON8CH 0x01
 #define RX_OLRSNG4CH  0x02
 #define RX_OLRSNG12CH 0x03
@@ -361,10 +350,17 @@ void setupSPI()
   pinMode(nSel_pin, OUTPUT);   //nSEL
 }
 
-#define IRQ_interrupt 0
-void setupRfmInterrupt()
+#define ENABLE_RFMINTERRUPT EICRA &= 0xFC; EIMSK |= (1<<INT0)
+
+ISR(INT0_vect)
 {
-  attachInterrupt(IRQ_interrupt, RFM22B_Int, FALLING);
+  if (RF_Mode == Transmit) {
+    RF_Mode = Transmitted;
+  }
+
+  if (RF_Mode == Receive) {
+    RF_Mode = Received;
+  }
 }
 
 #endif

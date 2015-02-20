@@ -405,7 +405,7 @@ void init_rfm(uint8_t isbind)
   spiWriteRegister(0x74, 0x00);    // no offset
 
   rfmSetCarrierFrequency(isbind ? BINDING_FREQUENCY : bind_data.rf_frequency);
-
+  ENABLE_RFMINTERRUPT;
 }
 
 void to_rx_mode(void)
