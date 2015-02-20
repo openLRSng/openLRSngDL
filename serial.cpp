@@ -9,39 +9,12 @@ struct fifo {
   uint8_t buf[FIFOSIZE];
 };
 
-volatile struct fifo rxFIFO = {.head=0, .tail=0};
-volatile struct fifo txFIFO = {.head=0, .tail=0};
+struct fifo rxFIFO = {.head=0, .tail=0};
+struct fifo txFIFO = {.head=0, .tail=0};
 
-volatile uint32_t rxDropped = 0;
-volatile uint32_t txDropped = 0;
-volatile uint32_t rxErrors = 0;
-
-inline bool fifoWrite(volatile struct fifo *fifo, uint8_t d)
-{
-  uint8_t i = (fifo->head + 1) % FIFOSIZE;
-  if (i != fifo->tail) {
-    fifo->buf[fifo->head] = d;
-    fifo->head = i;
-    return false;
-  } else {
-    return true; // overrun
-  }
-}
-
-inline bool fifoAvail(volatile struct fifo *fifo)
-{
-  return (fifo->head != fifo->tail);
-}
-
-inline uint8_t fifoRead(volatile struct fifo *fifo)
-{
-  uint8_t d = 0;
-  if (fifoAvail(fifo)) {
-    d = fifo->buf[fifo->tail];
-    fifo->tail = (fifo->tail + 1) % FIFOSIZE;
-  }
-  return d;
-}
+uint32_t rxDropped = 0;
+uint32_t txDropped = 0;
+uint32_t rxErrors = 0;
 
 ISR(USART_RX_vect)
 {
@@ -50,7 +23,11 @@ ISR(USART_RX_vect)
       rxDropped++;
     }
     unsigned char c = UDR0;
-    if (fifoWrite(&rxFIFO,c)) {
+    uint8_t i = (rxFIFO.head + 1) % FIFOSIZE;
+    if (i != rxFIFO.tail) {
+      rxFIFO.buf[rxFIFO.head] = c;
+      rxFIFO.head = i;
+    } else {
       rxDropped++;
     }
   } else {
@@ -60,8 +37,9 @@ ISR(USART_RX_vect)
 
 ISR(USART_UDRE_vect)
 {
-  if (fifoAvail(&txFIFO)) {
-    UDR0 = fifoRead(&txFIFO);
+  if (txFIFO.head != txFIFO.tail) {
+    UDR0 = txFIFO.buf[txFIFO.tail];
+    txFIFO.tail = (txFIFO.tail + 1) % FIFOSIZE;
   } else {
     UCSR0B &= ~(1 << UDRIE0);
   }
@@ -71,8 +49,12 @@ ISR(USART_UDRE_vect)
 // This may drop if FIFO is full, returns true if so
 bool serialWrite(unsigned char  c)
 {
-  if (fifoWrite(&txFIFO,c)) {
-    return 1;
+  uint8_t i = (txFIFO.head + 1) % FIFOSIZE;
+  if (i != txFIFO.tail) {
+    txFIFO.buf[txFIFO.head] = c;
+    txFIFO.head = i;
+  } else {
+    return true; // overrun
   }
   UCSR0B |= (1 << UDRIE0);
   return 0;
@@ -80,12 +62,17 @@ bool serialWrite(unsigned char  c)
 
 bool serialAvailable()
 {
-  return fifoAvail(&rxFIFO);
+  return (rxFIFO.head != rxFIFO.tail);
 }
 
 uint8_t serialRead()
 {
-  return fifoRead(&rxFIFO);
+  uint8_t d = 0;
+  if (rxFIFO.head != rxFIFO.tail) {
+    d = rxFIFO.buf[rxFIFO.tail];
+    rxFIFO.tail = (rxFIFO.tail + 1) % FIFOSIZE;
+  }
+  return d;
 }
 
 // Ensure byte is placed on FIFO

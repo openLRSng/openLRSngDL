@@ -9,6 +9,8 @@ void spiWriteRegister(uint8_t address, uint8_t data);
 void tx_packet(uint8_t* pkt, uint8_t size);
 void to_rx_mode(void);
 
+#define ALLOWANCE_US 4000
+
 uint32_t getInterval(struct bind_data *bd)
 {
   uint32_t ret;
@@ -16,7 +18,7 @@ uint32_t getInterval(struct bind_data *bd)
   // usec = (x + 15) * 8200000 / baudrate
 #define BYTES_AT_BAUD_TO_USEC(bytes, bps, div) ((uint32_t)((bytes) + (div?20:15)) * 8200000L / (uint32_t)(bps))
 
-  ret = 2 * BYTES_AT_BAUD_TO_USEC(bd->packetSize, modem_params[bd->modem_params].bps,0) + 3000;
+  ret = 2 * BYTES_AT_BAUD_TO_USEC(bd->packetSize, modem_params[bd->modem_params].bps,0) + ALLOWANCE_US;
 
   // round up to ms
   ret = ((ret + 999) / 1000) * 1000;
