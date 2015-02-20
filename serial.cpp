@@ -16,6 +16,8 @@ uint32_t rxDropped = 0;
 uint32_t txDropped = 0;
 uint32_t rxErrors = 0;
 
+bool txActive = false;
+
 ISR(USART_RX_vect)
 {
   if (!(UCSR0A & ((1<<UPE0) | (1<<FE0)))) {
@@ -57,6 +59,8 @@ bool serialWrite(unsigned char  c)
     return true; // overrun
   }
   UCSR0B |= (1 << UDRIE0);
+  txActive = true;
+  UCSR0A |= (1 << TXC0);
   return 0;
 }
 
@@ -74,6 +78,14 @@ uint8_t serialRead()
   }
   return d;
 }
+
+void serialFlush()
+{
+  while (serialAvailable()) serialRead();
+  while (txActive && !(UCSR0A & (1<<TXC0)));
+  txActive = false;
+}
+
 
 // Ensure byte is placed on FIFO
 void serialWriteSync(uint8_t c)
