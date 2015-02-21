@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
   if ((pktsize < 1) || (pktsize >32)) exit(2);
 
   interval = strtol(argv[3],NULL,0);
-  if ((interval < 1) || (interval>10000)) exit(2);
+  if ((interval < 0) || (interval>10000)) exit(2);
 
   int fd = open(argv[1],O_RDWR|O_NONBLOCK);
   if (fd < 0) exit(3);
@@ -47,9 +47,11 @@ int main(int argc, char **argv) {
     nsecs += now.tv_nsec - last.tv_nsec;
 
     if (nsecs > 1000000LL * interval) {
-      write(fd,head,2);
-      write(fd,packet,pktsize);
-      packet[0]++;
+      if (interval) {
+        write(fd,head,2);
+        write(fd,packet,pktsize);
+        packet[0]++;
+      }
       last = now;
     }
 
@@ -60,7 +62,12 @@ int main(int argc, char **argv) {
 
     if (1==read(1,&c,1)) {
       if ((c=='+') && (interval<1000)) interval+=10;
-      if ((c=='-') && (interval>19)) interval-=10;
+      if (c=='-') {
+        if (interval>10)
+          interval-=10;
+        else
+          interval=0;
+      }
       printf("\ninterval set to %ld\n",interval);
     }
     nanosleep(&sleeptime,NULL);
