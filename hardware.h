@@ -33,16 +33,16 @@ volatile uint8_t RF_Mode = 0;
 
 void buzzerInit()
 {
-  _pinMode(BUZZER_ACT, OUTPUT);
-  _digitalWrite(BUZZER_ACT, LOW);
+  pinMode(BUZZER_ACT, OUTPUT);
+  digitalWrite(BUZZER_ACT, LOW);
 }
 
 void buzzerOn(uint16_t freq)
 {
   if (freq) {
-    _digitalWrite(BUZZER_ACT,HIGH);
+    digitalWrite(BUZZER_ACT,HIGH);
   } else {
-    _digitalWrite(BUZZER_ACT,LOW);
+    digitalWrite(BUZZER_ACT,LOW);
   }
 }
 
@@ -82,11 +82,11 @@ void buzzerOn(uint16_t freq)
 
 void setupSPI()
 {
-  _pinMode(SDO_pin, INPUT);   //SDO
-  _pinMode(SDI_pin, OUTPUT);   //SDI
-  _pinMode(SCLK_pin, OUTPUT);   //SCLK
-  _pinMode(IRQ_pin, INPUT);   //IRQ
-  _pinMode(nSel_pin, OUTPUT);   //nSEL
+  pinMode(SDO_pin, INPUT);   //SDO
+  pinMode(SDI_pin, OUTPUT);   //SDI
+  pinMode(SCLK_pin, OUTPUT);   //SCLK
+  pinMode(IRQ_pin, INPUT);   //IRQ
+  pinMode(nSel_pin, OUTPUT);   //nSEL
 }
 
 #define IRQ_interrupt 1
@@ -123,16 +123,16 @@ void setupRfmInterrupt()
 
 void buzzerInit()
 {
-  _pinMode(BUZZER_ACT, OUTPUT);
-  _digitalWrite(BUZZER_ACT, LOW);
+  pinMode(BUZZER_ACT, OUTPUT);
+  digitalWrite(BUZZER_ACT, LOW);
 }
 
 void buzzerOn(uint16_t freq)
 {
   if (freq) {
-    _digitalWrite(BUZZER_ACT,HIGH);
+    digitalWrite(BUZZER_ACT,HIGH);
   } else {
-    _digitalWrite(BUZZER_ACT,LOW);
+    digitalWrite(BUZZER_ACT,LOW);
   }
 }
 
@@ -162,11 +162,11 @@ void buzzerOn(uint16_t freq)
 
 void setupSPI()
 {
-  _pinMode(SDO_pin, INPUT);   //SDO
-  _pinMode(SDI_pin, OUTPUT);   //SDI
-  _pinMode(SCLK_pin, OUTPUT);   //SCLK
-  _pinMode(IRQ_pin, INPUT);   //IRQ
-  _pinMode(nSel_pin, OUTPUT);   //nSEL
+  pinMode(SDO_pin, INPUT);   //SDO
+  pinMode(SDI_pin, OUTPUT);   //SDI
+  pinMode(SCLK_pin, OUTPUT);   //SCLK
+  pinMode(IRQ_pin, INPUT);   //IRQ
+  pinMode(nSel_pin, OUTPUT);   //nSEL
 }
 
 #define IRQ_interrupt 0
@@ -191,16 +191,16 @@ void setupRfmInterrupt()
 
 void buzzerInit()
 {
-  _pinMode(BUZZER_ACT, OUTPUT);
-  _digitalWrite(BUZZER_ACT, LOW);
+  pinMode(BUZZER_ACT, OUTPUT);
+  digitalWrite(BUZZER_ACT, LOW);
 }
 
 void buzzerOn(uint16_t freq)
 {
   if (freq) {
-    _digitalWrite(BUZZER_ACT,HIGH);
+    digitalWrite(BUZZER_ACT,HIGH);
   } else {
-    _digitalWrite(BUZZER_ACT,LOW);
+    digitalWrite(BUZZER_ACT,LOW);
   }
 }
 
@@ -241,11 +241,11 @@ void buzzerOn(uint16_t freq)
 
 void setupSPI()
 {
-  _pinMode(SDO_pin, INPUT);   //SDO
-  _pinMode(SDI_pin, OUTPUT);   //SDI
-  _pinMode(SCLK_pin, OUTPUT);   //SCLK
-  _pinMode(IRQ_pin, INPUT);   //IRQ
-  _pinMode(nSel_pin, OUTPUT);   //nSEL
+  pinMode(SDO_pin, INPUT);   //SDO
+  pinMode(SDI_pin, OUTPUT);   //SDI
+  pinMode(SCLK_pin, OUTPUT);   //SCLK
+  pinMode(IRQ_pin, INPUT);   //IRQ
+  pinMode(nSel_pin, OUTPUT);   //nSEL
   EICRA &= ~(1<<ISC00);
   EICRA |= (1<<ISC01);
   EIMSK |= (1<<INT0);
@@ -282,8 +282,8 @@ ISR(INT0_vect)
 
 void buzzerInit()
 {
-  _pinMode(BUZZER_ACT, OUTPUT);
-  _digitalWrite(BUZZER_ACT, LOW);
+  pinMode(BUZZER_ACT, OUTPUT);
+  digitalWrite(BUZZER_ACT, LOW);
   TCCR2A = (1<<WGM21); // mode=CTC
 #if (F_CPU == 16000000)
   TCCR2B = (1<<CS22) | (1<<CS20); // prescaler = 128
@@ -292,14 +292,14 @@ void buzzerInit()
 #else
 #errror F_CPU Invalid
 #endif
-  _pinMode(BUZZER_PAS, OUTPUT);
-  _digitalWrite(BUZZER_PAS, LOW);
+  pinMode(BUZZER_PAS, OUTPUT);
+  digitalWrite(BUZZER_PAS, LOW);
 }
 
 void buzzerOn(uint16_t freq)
 {
   if (freq) {
-    _digitalWrite(BUZZER_ACT,HIGH);
+    digitalWrite(BUZZER_ACT,HIGH);
     uint32_t ocr = 125000L / freq;
     if (ocr>255) {
       ocr=255;
@@ -310,7 +310,7 @@ void buzzerOn(uint16_t freq)
     OCR2A = ocr;
     TCCR2A |= (1<<COM2B0); // enable output on buzzer2
   } else {
-    _digitalWrite(BUZZER_ACT,LOW);
+    digitalWrite(BUZZER_ACT,LOW);
     TCCR2A &= ~(1<<COM2B0); // disable output buzzer2
   }
 }
@@ -351,11 +351,11 @@ void buzzerOn(uint16_t freq)
 
 void setupSPI()
 {
-  _pinMode(SDO_pin, INPUT);   //SDO
-  _pinMode(SDI_pin, OUTPUT);   //SDI
-  _pinMode(SCLK_pin, OUTPUT);   //SCLK
-  _pinMode(IRQ_pin, INPUT);   //IRQ
-  _pinMode(nSel_pin, OUTPUT);   //nSEL
+  pinMode(SDO_pin, INPUT);   //SDO
+  pinMode(SDI_pin, OUTPUT);   //SDI
+  pinMode(SCLK_pin, OUTPUT);   //SCLK
+  pinMode(IRQ_pin, INPUT);   //IRQ
+  pinMode(nSel_pin, OUTPUT);   //nSEL
   EICRA &= ~(1<<ISC00);
   EICRA |= (1<<ISC01);
   EIMSK |= (1<<INT0);
@@ -406,8 +406,8 @@ void buzzerInit()
 #else
 #errror F_CPU Invalid
 #endif
-  _pinMode(BUZZER_PAS, OUTPUT);
-  _digitalWrite(BUZZER_PAS, LOW);
+  pinMode(BUZZER_PAS, OUTPUT);
+  digitalWrite(BUZZER_PAS, LOW);
 }
 
 void buzzerOn(uint16_t freq)
@@ -462,11 +462,11 @@ void buzzerOn(uint16_t freq)
 
 void setupSPI()
 {
-  _pinMode(SDO_pin, INPUT);   //SDO
-  _pinMode(SDI_pin, OUTPUT);   //SDI
-  _pinMode(SCLK_pin, OUTPUT);   //SCLK
-  _pinMode(IRQ_pin, INPUT);   //IRQ
-  _pinMode(nSel_pin, OUTPUT);   //nSEL
+  pinMode(SDO_pin, INPUT);   //SDO
+  pinMode(SDI_pin, OUTPUT);   //SDI
+  pinMode(SCLK_pin, OUTPUT);   //SCLK
+  pinMode(IRQ_pin, INPUT);   //IRQ
+  pinMode(nSel_pin, OUTPUT);   //nSEL
 }
 
 #define IRQ_interrupt 0
@@ -497,8 +497,8 @@ void setupRfmInterrupt()
 
 void buzzerInit()
 {
-  _pinMode(BUZZER_ACT, OUTPUT);
-  _digitalWrite(BUZZER_ACT, LOW);
+  pinMode(BUZZER_ACT, OUTPUT);
+  digitalWrite(BUZZER_ACT, LOW);
   TCCR2A = (1<<WGM21); // mode=CTC
 #if (F_CPU == 16000000)
   TCCR2B = (1<<CS22) | (1<<CS20); // prescaler = 128
@@ -507,15 +507,15 @@ void buzzerInit()
 #else
 #errror F_CPU Invalid
 #endif
-  _pinMode(BUZZER_PAS, OUTPUT);
-  _digitalWrite(BUZZER_PAS, LOW);
+  pinMode(BUZZER_PAS, OUTPUT);
+  digitalWrite(BUZZER_PAS, LOW);
 }
 
 void buzzerOn(uint16_t freq)
 {
   if (freq) {
     uint32_t ocr = 125000L / freq;
-    _digitalWrite(BUZZER_ACT,HIGH);
+    digitalWrite(BUZZER_ACT,HIGH);
     if (ocr>255) {
       ocr=255;
     }
@@ -525,7 +525,7 @@ void buzzerOn(uint16_t freq)
     OCR2A = ocr;
     TCCR2A |= (1<<COM2B0); // enable output
   } else {
-    _digitalWrite(BUZZER_ACT,LOW);
+    digitalWrite(BUZZER_ACT,LOW);
     TCCR2A &= ~(1<<COM2B0); // disable output
   }
 }
@@ -566,11 +566,11 @@ void buzzerOn(uint16_t freq)
 
 void setupSPI()
 {
-  _pinMode(SDO_pin, INPUT);   //SDO
-  _pinMode(SDI_pin, OUTPUT);   //SDI
-  _pinMode(SCLK_pin, OUTPUT);   //SCLK
-  _pinMode(IRQ_pin, INPUT);   //IRQ
-  _pinMode(nSel_pin, OUTPUT);   //nSEL
+  pinMode(SDO_pin, INPUT);   //SDO
+  pinMode(SDI_pin, OUTPUT);   //SDI
+  pinMode(SCLK_pin, OUTPUT);   //SCLK
+  pinMode(IRQ_pin, INPUT);   //IRQ
+  pinMode(nSel_pin, OUTPUT);   //nSEL
 }
 
 #define IRQ_interrupt 0
@@ -602,8 +602,8 @@ void setupRfmInterrupt()
 void buzzerInit()
 {
   TCCR4B = (1<<CS43); // prescaler = 128
-  _pinMode(BUZZER_PAS, OUTPUT);
-  _digitalWrite(BUZZER_PAS, LOW);
+  pinMode(BUZZER_PAS, OUTPUT);
+  digitalWrite(BUZZER_PAS, LOW);
 }
 
 void buzzerOn(uint16_t freq)
@@ -660,8 +660,8 @@ void setupSPI()
   DDRB |= (1<<DDB1); // SCK PB1 output
   DDRB |= (1<<DDB2); // SDI/MOSI PB2 output
   DDRB &= ~(1<<DDB3); // SDO/MISO PB3 input
-  _pinMode(IRQ_pin, INPUT);   //IRQ
-  _pinMode(nSel_pin, OUTPUT);   //nSEL
+  pinMode(IRQ_pin, INPUT);   //IRQ
+  pinMode(nSel_pin, OUTPUT);   //nSEL
 }
 
 void setupRfmInterrupt()
@@ -698,17 +698,17 @@ ISR(PCINT0_vect)
 
 void buzzerInit()
 {
-  _pinMode(BUZZER_ACT, OUTPUT);
-  _digitalWrite(BUZZER_ACT, LOW);
+  pinMode(BUZZER_ACT, OUTPUT);
+  digitalWrite(BUZZER_ACT, LOW);
 }
 
 void buzzerOn(uint16_t freq)
 {
   // Leaving freq in since it is being used in code already.
   if (freq) {
-    _digitalWrite(BUZZER_ACT,HIGH);
+    digitalWrite(BUZZER_ACT,HIGH);
   } else {
-    _digitalWrite(BUZZER_ACT,LOW);
+    digitalWrite(BUZZER_ACT,LOW);
   }
 }
 
@@ -748,11 +748,11 @@ void buzzerOn(uint16_t freq)
 
 void setupSPI()
 {
-  _pinMode(SDO_pin, INPUT);   //SDO
-  _pinMode(SDI_pin, OUTPUT);   //SDI
-  _pinMode(SCLK_pin, OUTPUT);   //SCLK
-  _pinMode(IRQ_pin, INPUT);   //IRQ
-  _pinMode(nSel_pin, OUTPUT);   //nSEL
+  pinMode(SDO_pin, INPUT);   //SDO
+  pinMode(SDI_pin, OUTPUT);   //SDI
+  pinMode(SCLK_pin, OUTPUT);   //SCLK
+  pinMode(IRQ_pin, INPUT);   //IRQ
+  pinMode(nSel_pin, OUTPUT);   //nSEL
 }
 
 #define IRQ_interrupt 0
@@ -781,8 +781,8 @@ void setupRfmInterrupt()
 
 void buzzerInit()
 {
-  _pinMode(BUZZER_ACT, OUTPUT);
-  _digitalWrite(BUZZER_ACT, LOW);
+  pinMode(BUZZER_ACT, OUTPUT);
+  digitalWrite(BUZZER_ACT, LOW);
   TCCR2A = (1<<WGM21); // mode=CTC
 #if (F_CPU == 16000000)
   TCCR2B = (1<<CS22) | (1<<CS20); // prescaler = 128
@@ -791,15 +791,15 @@ void buzzerInit()
 #else
 #errror F_CPU Invalid
 #endif
-  _pinMode(BUZZER_PAS, OUTPUT);
-  _digitalWrite(BUZZER_PAS, LOW);
+  pinMode(BUZZER_PAS, OUTPUT);
+  digitalWrite(BUZZER_PAS, LOW);
 }
 
 void buzzerOn(uint16_t freq)
 {
   if (freq) {
     uint32_t ocr = 125000L / freq;
-    _digitalWrite(BUZZER_ACT,HIGH);
+    digitalWrite(BUZZER_ACT,HIGH);
     if (ocr>255) {
       ocr=255;
     }
@@ -809,7 +809,7 @@ void buzzerOn(uint16_t freq)
     OCR2A = ocr;
     TCCR2A |= (1<<COM2B0); // enable output
   } else {
-    _digitalWrite(BUZZER_ACT,LOW);
+    digitalWrite(BUZZER_ACT,LOW);
     TCCR2A &= ~(1<<COM2B0); // disable output
   }
 }
@@ -848,11 +848,11 @@ void buzzerOn(uint16_t freq)
 
 void setupSPI()
 {
-  _pinMode(SDO_pin, INPUT);   //SDO
-  _pinMode(SDI_pin, OUTPUT);   //SDI
-  _pinMode(SCLK_pin, OUTPUT);   //SCLK
-  _pinMode(IRQ_pin, INPUT);   //IRQ
-  _pinMode(nSel_pin, OUTPUT);   //nSEL
+  pinMode(SDO_pin, INPUT);   //SDO
+  pinMode(SDI_pin, OUTPUT);   //SDI
+  pinMode(SCLK_pin, OUTPUT);   //SCLK
+  pinMode(IRQ_pin, INPUT);   //IRQ
+  pinMode(nSel_pin, OUTPUT);   //nSEL
 }
 
 #define IRQ_interrupt 0
@@ -880,17 +880,17 @@ void setupRfmInterrupt()
 
 void buzzerInit()
 {
-  _pinMode(BUZZER_ACT, OUTPUT);
-  _digitalWrite(BUZZER_ACT, LOW);
+  pinMode(BUZZER_ACT, OUTPUT);
+  digitalWrite(BUZZER_ACT, LOW);
 }
 
 void buzzerOn(uint16_t freq)
 {
   // Leaving freq in since it is being used in code already.
   if (freq) {
-    _digitalWrite(BUZZER_ACT,HIGH);
+    digitalWrite(BUZZER_ACT,HIGH);
   } else {
-    _digitalWrite(BUZZER_ACT,LOW);
+    digitalWrite(BUZZER_ACT,LOW);
   }
 }
 
@@ -929,11 +929,11 @@ void buzzerOn(uint16_t freq)
 
 void setupSPI()
 {
-  _pinMode(SDO_pin, INPUT);   //SDO
-  _pinMode(SDI_pin, OUTPUT);   //SDI
-  _pinMode(SCLK_pin, OUTPUT);   //SCLK
-  _pinMode(IRQ_pin, INPUT);   //IRQ
-  _pinMode(nSel_pin, OUTPUT);   //nSEL
+  pinMode(SDO_pin, INPUT);   //SDO
+  pinMode(SDI_pin, OUTPUT);   //SDI
+  pinMode(SCLK_pin, OUTPUT);   //SCLK
+  pinMode(IRQ_pin, INPUT);   //IRQ
+  pinMode(nSel_pin, OUTPUT);   //nSEL
 }
 
 #define IRQ_interrupt 0

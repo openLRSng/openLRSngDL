@@ -1,4 +1,3 @@
-
 static bool cliActive = 0;
 static char linebuf[16];
 

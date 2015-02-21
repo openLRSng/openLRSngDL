@@ -61,8 +61,12 @@
 //### CODE SECTION ###
 //####################
 
-#include <Arduino.h>
-
+#include<ctype.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<avr/interrupt.h>
+#include "system.h"
 #include "io.h"
 #include "serial.h"
 #include "print.h"

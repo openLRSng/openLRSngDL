@@ -59,7 +59,7 @@ void bindMode(void)
       }
     }
 
-    if (!_digitalRead(BTN)) {
+    if (!digitalRead(BTN)) {
       sendBinds = 1;
     }
 
@@ -122,7 +122,7 @@ bool slaveMode = false;
 
 static inline void checkOperatingMode()
 {
-  if (_digitalRead(SLAVE_SELECT)) {
+  if (digitalRead(SLAVE_SELECT)) {
     slaveMode = false;
   } else {
     slaveMode = true;
@@ -174,19 +174,19 @@ void setup(void)
 
   setupSPI();
 #ifdef SDN_pin
-  _pinMode(SDN_pin, OUTPUT); //SDN
-  _digitalWrite(SDN_pin, 0);
+  pinMode(SDN_pin, OUTPUT); //SDN
+  digitalWrite(SDN_pin, 0);
 #endif
   //LED and other interfaces
-  _pinMode(Red_LED, OUTPUT); //RED LED
-  _pinMode(Green_LED, OUTPUT); //GREEN LED
+  pinMode(Red_LED, OUTPUT); //RED LED
+  pinMode(Green_LED, OUTPUT); //GREEN LED
 #ifdef Red_LED2
-  _pinMode(Red_LED2, OUTPUT); //RED LED
-  _pinMode(Green_LED2, OUTPUT); //GREEN LED
+  pinMode(Red_LED2, OUTPUT); //RED LED
+  pinMode(Green_LED2, OUTPUT); //GREEN LED
 #endif
-  // _pinMode(BTN, INPUT); //Button
-  _pinMode(SLAVE_SELECT, INPUT);
-  _digitalWrite(SLAVE_SELECT, HIGH); // enable pullup for TX:s with open collector output
+  // pinMode(BTN, INPUT); //Button
+  pinMode(SLAVE_SELECT, INPUT);
+  digitalWrite(SLAVE_SELECT, HIGH); // enable pullup for TX:s with open collector output
   buzzerInit();
 
   serialInit(115200);
@@ -202,7 +202,7 @@ void setup(void)
   printStr("MHz) MDOE=");
 
   buzzerOn(BZ_FREQ);
-  _digitalWrite(BTN, HIGH);
+  digitalWrite(BTN, HIGH);
   Red_LED_ON ;
   sei();
 
@@ -214,12 +214,12 @@ void setup(void)
       bindInitDefaults();
       bindWriteEeprom();
     }
-    if (!_digitalRead(BTN)) {
+    if (!digitalRead(BTN)) {
       bindMode();
     }
   } else {
     printStrLn("SLAVE");
-    if (!_digitalRead(BTN) || !bindReadEeprom()) {
+    if (!digitalRead(BTN) || !bindReadEeprom()) {
       bindRX(false);
     } else {
       bindRX(true);
@@ -519,7 +519,6 @@ int main(void)
 
   for (;;) {
     loop();
-    if (serialEventRun) serialEventRun();
   }
 
   return 0;
