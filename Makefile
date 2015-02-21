@@ -162,8 +162,8 @@ astyle:
 	$(ASTYLE) $(ASTYLEOPTIONS) *.h *.cpp
 
 433 868 915:
-	$(RM) -rf $(OUT_FOLDER)/$@
-	$(MKDIR) -p $(OUT_FOLDER)/$@
+	@$(RM) -rf $(OUT_FOLDER)/$@
+	@$(MKDIR) -p $(OUT_FOLDER)/$@
 	$(foreach type, $(BOARD_TYPES), make -s RFMTYPE=$@ BOARD_TYPE=$(type) clean_compilation_products all && cp openLRSngDL.hex $(OUT_FOLDER)/$@/DL-$(type).hex && cp openLRSngDLBL.hex $(OUT_FOLDER)/$@/DL-$(type)-bl.hex;)
 
 
