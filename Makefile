@@ -99,7 +99,7 @@ OUT_FOLDER=out
 #
 # Target object files
 #
-OBJS=openLRSngDL.o serial.o io.o system.o
+OBJS=main.o serial.o io.o system.o
 
 #
 # Master target
@@ -115,9 +115,6 @@ utils:
 # From here down are build rules
 #
 
-define ino-command
-	@$(CXX) -c $(COPTFLAGS) $(CXXFLAGS) $(CFLAGS) $(INCLUDE) -o $@ -x c++ $<
-endef
 define cc-command
 	@$(CC) -c $(COPTFLAGS) $(CFLAGS) $(INCLUDE) -o $@ $<
 endef
@@ -125,10 +122,7 @@ define cxx-command
 	@$(CXX) -c $(COPTFLAGS) $(CXXFLAGS) $(CFLAGS) $(INCLUDE) -o $@ $<
 endef
 
-.PHONY: all clean upload astyle 433 868 915 allfw
-
-%.o: %.ino
-	$(ino-command)
+.PHONY: all clean upload astyle 433 868 915 allfw utils
 
 %.o: %.c
 	$(cc-command)
@@ -165,7 +159,7 @@ openLRSngDL.hex: $(OBJS)
 	@$(CAT) bootloaders/$(BOOTLOADER) >> openLRSngDLBL.hex
 
 astyle:
-	$(ASTYLE) $(ASTYLEOPTIONS) openLRSngDL.ino *.h *.cpp
+	$(ASTYLE) $(ASTYLEOPTIONS) *.h *.cpp
 
 433 868 915:
 	$(RM) -rf $(OUT_FOLDER)/$@

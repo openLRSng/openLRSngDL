@@ -1,6 +1,56 @@
-/****************************************************
- * OpenLRSng transmitter code
- ****************************************************/
+// **********************************************************
+// ************************ openLRSng ***********************
+// **********************************************************
+// ** by Kari Hautio - kha @ AeroQuad/RCGroups/IRC(Freenode)
+// ** other commits by cTn-dev, rlboyd, DTFUHF, pwarren
+//
+// Developer chat at IRC: #openLRS @ freenode
+//
+// This code is based on original OpenLRS and thUndeadMod
+//
+// Donations for development tools and utilities (beer) here
+// https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DSWGKGKPRX5CS
+//
+// Please note that for basic usage there is no need to use this
+// code in source form. Instead use configurator program available
+// freely in Google Chrome store.
+// http://goo.gl/iX7dJx
+//
+// **********************************************************
+// ************ based on: OpenLRS thUndeadMod ***************
+// Mihai Andrian - thUndead http://www.fpvuk.org/forum/index.php?topic=3642.0
+//
+// **********************************************************
+// *************** based on: OpenLRS Code *******************
+// ***  OpenLRS Designed by Melih Karakelle on 2010-2011  ***
+// **  an Arudino based RC Rx/Tx system with extra futures **
+// **       This Source code licensed under GPL            **
+// **********************************************************
+
+// **********************************************************
+// **************** original OpenLRS DEVELOPERS *************
+// Mihai Andrian - thUndead http://www.fpvuk.org/forum/index.php?topic=3642.0
+// Melih Karakelle (http://www.flytron.com) (forum nick name: Flytron)
+// Jan-Dirk Schuitemaker (http://www.schuitemaker.org/) (forum nick name: CrashingDutchman)
+// Etienne Saint-Paul (http://www.gameseed.fr) (forum nick name: Etienne)
+
+#include<ctype.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<avr/interrupt.h>
+#include "system.h"
+#include "io.h"
+#include "serial.h"
+#include "print.h"
+#include "version.h"
+#include "binding.h"
+#include "hardware.h"
+#include "wd.h"
+#include "common.h"
+#include "chpicker.h"
+#include "cli.h"
+
 uint8_t RF_channel = 0;
 
 uint32_t lastSent = 0;
