@@ -338,9 +338,9 @@ void rfmSetPower(uint8_t p)
 void init_rfm(uint8_t isbind)
 {
 #ifdef SDN_pin
-  digitalWrite(SDN_pin, 1);
+  _digitalWrite(SDN_pin, 1);
   delay(50);
-  digitalWrite(SDN_pin, 0);
+  _digitalWrite(SDN_pin, 0);
   delay(50);
 #endif
 

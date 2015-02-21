@@ -118,7 +118,7 @@ ARDUINO_VARIANT_PATH=$(ARDUINO_PATH)/hardware/arduino/variants/$(VARIANT)
 # Arduino library files used, compilation settings.
 #
 ARDUINO_CORELIB_PATH=$(ARDUINO_PATH)/hardware/arduino/cores/arduino/
-ARDUINO_CORELIB_SRCS=wiring.c wiring_digital.c main.cpp
+ARDUINO_CORELIB_SRCS=wiring.c main.cpp
 ARDUINO_CORELIB_OBJS= $(patsubst %.c, libraries/%.o, $(patsubst %.cpp, libraries/%.o, $(ARDUINO_CORELIB_SRCS)))
 
 
@@ -142,14 +142,17 @@ OUT_FOLDER=out
 #
 # Target object files
 #
-OBJS=openLRSngDL.o serial.o $(ARDUINO_LIB_OBJS) $(LIBRARIES_FOLDER)/libcore.a
+OBJS=openLRSngDL.o serial.o io.o $(ARDUINO_LIB_OBJS) $(LIBRARIES_FOLDER)/libcore.a
 
 #
 # Master target
 #
 allfw: 433 868 915
 
-all: mkdirs openLRSngDL.hex
+all: mkdirs openLRSngDL.hex utils
+
+utils:
+	make -C utils
 
 #
 # From here down are build rules
@@ -188,6 +191,7 @@ $(LIBRARIES_FOLDER)/%.o: %.cpp
 #
 clean: clean_compilation_products
 	@$(RM) -rf $(OUT_FOLDER) *~ \#*\#
+	make -C utils clean
 
 clean_compilation_products:
 	@$(RM) -rf $(LIBRARIES_FOLDER)

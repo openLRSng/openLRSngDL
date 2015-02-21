@@ -63,6 +63,7 @@
 
 #include <Arduino.h>
 
+#include "io.h"
 #include "serial.h"
 #include "print.h"
 #include "version.h"
