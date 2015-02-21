@@ -1,7 +1,15 @@
-all: plurt pktgen
+TARGETS=plurt pktgen
 
-plurt: plurt.cc
-	gcc -Wall -o plurt plurt.cc
+CPPFLAGS=-Wall
 
-pktgen: pktgen.cc
-	gcc -Wall -o pktgen pktgen.cc
+all: $(TARGETS)
+
+clean:
+	rm -f $(TARGETS)
+	rm -f *~
+	rm -f *.o
+
+plurt: plurt.o
+
+pktgen: pktgen.o
+
