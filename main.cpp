@@ -323,7 +323,6 @@ void slaveLoop()
         rx_buf[i] = spiReadData();
       }
       // Check if this is a new packet from master and not a resent one
-      bool send_idle = ((bind_data.flags & PACKET_MODE) && (bind_data.flags & IDLEPACKET_MODE));
       if ((rx_buf[0] ^ tx_buf[0]) & MASTER_SEQ) {
         tx_buf[0] ^= MASTER_SEQ;
         if (rx_buf[0] & 0x20) {
@@ -331,16 +330,11 @@ void slaveLoop()
           if (bind_data.flags & PACKET_MODE) {
             serialWrite(0xf0);
             serialWrite((rx_buf[0] & 0x1f) + 1);
-            send_idle = 0;
           }
           for (uint8_t i=0; i <= (rx_buf[0] & 0x1f); i++) {
             serialWrite(rx_buf[1 + i]);
           }
         }
-      }
-      if (send_idle) {
-        serialWrite(0xf0);
-        serialWrite(0x00);
       }
 
       // construct TX packet, resend if the ack was not done
@@ -369,6 +363,13 @@ void slaveLoop()
 
       state = 1;
       tx_packet_async(tx_buf, bind_data.packetSize);
+      if ((bind_data.flags & (PACKET_MODE | STATUSPACKET_MODE)) == (PACKET_MODE | STATUSPACKET_MODE)) {
+        serialWrite(0xf0);
+        serialWrite(0x00); // indicate this is status packet
+        serialWrite(0x00); // local RSSI
+        serialWrite(0x00); // remote RSSI
+        serialWrite(0x00); // linkq
+      }
     } else {
       if ((now - lastReceived) > (getInterval(&bind_data) + 500)) {
         Red_LED_ON;
@@ -426,7 +427,6 @@ void masterLoop()
     for (int16_t i = 0; i < bind_data.packetSize; i++) {
       rx_buf[i] = spiReadData();
     }
-    bool send_idle = ((bind_data.flags & PACKET_MODE) && (bind_data.flags & IDLEPACKET_MODE));
     if ((rx_buf[0] ^ tx_buf[0]) & SLAVE_SEQ) {
       tx_buf[0] ^= SLAVE_SEQ;
       if (rx_buf[0] & 0x20) {
@@ -434,16 +434,11 @@ void masterLoop()
         if (bind_data.flags & PACKET_MODE) {
           serialWrite(0xf0);
           serialWrite((rx_buf[0] & 0x1f) + 1);
-          send_idle = 0;
         }
         for (uint8_t i=0; i <= (rx_buf[0] & 0x1f); i++) {
           serialWrite(rx_buf[1 + i]);
         }
       }
-    }
-    if (send_idle) {
-      serialWrite(0xf0);
-      serialWrite(0x00);
     }
   }
 
@@ -505,7 +500,13 @@ void masterLoop()
     }
     rfmSetChannel(RF_channel);
     tx_packet_async(tx_buf, bind_data.packetSize);
-
+    if ((bind_data.flags & (PACKET_MODE | STATUSPACKET_MODE)) == (PACKET_MODE | STATUSPACKET_MODE)) {
+      serialWrite(0xf0);
+      serialWrite(0x00); // indicate this is status packet
+      serialWrite(0x00); // local RSSI
+      serialWrite(0x00); // remote RSSI
+      serialWrite(0x00); // linkq
+    }
   }
 
   if (tx_done() == 1) {
