@@ -5,6 +5,7 @@
 #include<unistd.h>
 #include<time.h>
 #include<fcntl.h>
+#include<errno.h>
 
 char datablock[] =
   "#######  #######   #####   #######  ######      #     #######     #     \r\n"
@@ -55,11 +56,18 @@ int main(int argc, char **argv) {
     while (nanobytes > 1000000000LL) {
       nanobytes-=1000000000LL;
       char c = getbyte();
-      write(fd,&c,1);
+      if (write(fd,&c,1) < 0) {
+        printf("Error writing port, quit!!\n");
+        exit(1);
+      }
     }
     char c;
-    while (1==read(fd,&c,1)) write(0,&c,1);
-
+    int r;
+    while (1==(r=read(fd,&c,1))) write(0,&c,1);
+    if ((r<0) && (errno!=EAGAIN)) {
+      printf("Error reading port, quit!!\n");
+      exit(1);
+    }
     if (1==read(1,&c,1)) {
       if (c=='+') bps+=10;
       if ((c=='-') && (bps>10)) bps-=10;
