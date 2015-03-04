@@ -56,13 +56,15 @@ uint8_t RF_channel = 0;
 uint32_t lastSent = 0;
 uint32_t lastReceived = 0;
 
-uint8_t RSSI_rx = 0;
-uint8_t RSSI_tx = 0;
-uint32_t sampleRSSI = 0;
+uint8_t peerRSSI = 0;
+uint8_t localRSSI = 0;
+bool    sampleRSSI = 0;
 
 uint16_t linkQuality = 0;
 uint8_t linkQualityPeer = 0;
 
+uint32_t packetInterval = 0;
+#define RSSI_OFFSET 2000 // sample RSSI 2ms before packet is done
 
 #ifndef BZ_FREQ
 #define BZ_FREQ 2000
@@ -276,6 +278,8 @@ void setup(void)
     }
   }
 
+  packetInterval = getInterval(&bind_data);
+
   printStrLn("Entering normal mode");
 
   serialFlush();
@@ -313,8 +317,9 @@ void slaveLoop()
       Red_LED_OFF;
       // got packet
       lastReceived = now;
+      sampleRSSI = true;
       lostpkts=0;
-      linkQuality |= 1;
+      linkQuality = (linkQuality << 1) | 1;
 
       RF_Mode = Receive;
 
@@ -335,6 +340,16 @@ void slaveLoop()
             serialWrite(rx_buf[1 + i]);
           }
         }
+      }
+
+      // extract peerRSSI if it is attached
+      if (rx_buf[0] & 0x20) {
+        uint8_t payload_bytes = (rx_buf[0] & 0x1f) + 1;
+        if ((payload_bytes + 1) < bind_data.packetSize ) {
+          peerRSSI = rx_buf[payload_bytes + 1];
+        }
+      } else {
+        peerRSSI = rx_buf[1];
       }
 
       // construct TX packet, resend if the ack was not done
@@ -361,18 +376,33 @@ void slaveLoop()
         }
       }
 
+      // fill in RSSI if it fits
+      if (tx_buf[0] & 0x20) {
+        uint8_t payload_bytes = (tx_buf[0] & 0x1f) + 1;
+        if ((payload_bytes + 1) < bind_data.packetSize ) {
+          tx_buf[payload_bytes + 1] = localRSSI;
+        }
+      } else {
+        tx_buf[1] = localRSSI;
+      }
+
       state = 1;
       tx_packet_async(tx_buf, bind_data.packetSize);
       if ((bind_data.flags & (PACKET_MODE | STATUSPACKET_MODE)) == (PACKET_MODE | STATUSPACKET_MODE)) {
         serialWrite(0xf0);
         serialWrite(0x00); // indicate this is status packet
-        serialWrite(0x00); // local RSSI
-        serialWrite(0x00); // remote RSSI
-        serialWrite(0x00); // linkq
+        serialWrite(localRSSI); // local RSSI
+        serialWrite(peerRSSI);  // remote RSSI
+        serialWrite(countSetBits(linkQuality)); // linkq
       }
     } else {
-      if ((now - lastReceived) > (getInterval(&bind_data) + 500)) {
+      if ((sampleRSSI) && ((now - lastReceived) > (packetInterval - RSSI_OFFSET))) {
+        localRSSI = rfmGetRSSI();
+        sampleRSSI = false;
+      }
+      if ((now - lastReceived) > (packetInterval + 500)) {
         Red_LED_ON;
+        linkQuality = (linkQuality << 1) | 1;
 
         if (lostpkts++ < 10) {
           needHop=1;
@@ -383,7 +413,7 @@ void slaveLoop()
           }
         }
         // missed a packet
-        lastReceived += getInterval(&bind_data);
+        lastReceived += packetInterval;
       }
     }
     break;
@@ -413,14 +443,16 @@ void slaveLoop()
 
 void masterLoop()
 {
+  uint32_t now = micros();
+
   if (RF_Mode == Received) {
     // got packet
     Red_LED_OFF;
 
+    sampleRSSI = true;
+
     lastReceived = (micros() | 1);
-
     linkQuality |= 1;
-
     RF_Mode = Receive;
 
     spiSendAddress(0x7f); // Send the package read command
@@ -440,22 +472,29 @@ void masterLoop()
         }
       }
     }
+    // extract peerRSSI if it is attached
+    if (rx_buf[0] & 0x20) {
+      uint8_t payload_bytes = (rx_buf[0] & 0x1f) + 1;
+      if ((payload_bytes + 1) < bind_data.packetSize ) {
+        peerRSSI = rx_buf[payload_bytes + 1];
+      }
+    } else {
+      peerRSSI = rx_buf[1];
+    }
   }
 
-  uint32_t time = micros();
-
-  if ((sampleRSSI) && ((time - sampleRSSI) >= 3000)) {
-    RSSI_tx = rfmGetRSSI();
-    sampleRSSI = 0;
+  if ((sampleRSSI) && ((now - lastReceived) > (packetInterval - RSSI_OFFSET))) {
+    localRSSI = rfmGetRSSI();
+    sampleRSSI = false;
   }
 
-  if ((time - lastSent) >= getInterval(&bind_data)) {
-    lastSent = time;
+  if ((now - lastSent) >= packetInterval) {
+    lastSent = now;
 
     watchdogReset();
 
     if (lastReceived) {
-      if (((time | 1)- lastReceived) > getInterval(&bind_data)) {
+      if ((now - lastReceived) > packetInterval) {
         // telemetry lost
         Red_LED_ON;
         if (!(bind_data.flags & MUTE_TX)) {
@@ -493,6 +532,16 @@ void masterLoop()
       }
     }
 
+    // fill in RSSI if it fits
+    if (tx_buf[0] & 0x20) {
+      uint8_t payload_bytes = (tx_buf[0] & 0x1f) + 1;
+      if ((payload_bytes + 1) < bind_data.packetSize ) {
+        tx_buf[payload_bytes + 1] = localRSSI;
+      }
+    } else {
+      tx_buf[1] = localRSSI;
+    }
+
     // Send the data over RF on the next frequency
     RF_channel++;
     if ((RF_channel == MAXHOPS) || (bind_data.hopchannel[RF_channel] == 0)) {
@@ -503,9 +552,9 @@ void masterLoop()
     if ((bind_data.flags & (PACKET_MODE | STATUSPACKET_MODE)) == (PACKET_MODE | STATUSPACKET_MODE)) {
       serialWrite(0xf0);
       serialWrite(0x00); // indicate this is status packet
-      serialWrite(0x00); // local RSSI
-      serialWrite(0x00); // remote RSSI
-      serialWrite(0x00); // linkq
+      serialWrite(localRSSI); // local RSSI
+      serialWrite(peerRSSI);  // remote RSSI
+      serialWrite(countSetBits(linkQuality)); // linkq
     }
   }
 
@@ -513,11 +562,6 @@ void masterLoop()
     linkQuality <<= 1;
     RF_Mode = Receive;
     rx_reset();
-    // tell loop to sample downlink RSSI
-    sampleRSSI = micros();
-    if (sampleRSSI == 0) {
-      sampleRSSI = 1;
-    }
   }
   Green_LED_OFF;
 }
