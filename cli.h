@@ -178,7 +178,7 @@ void handleCLI()
       uint8_t i=0;
       do {
         char q[7];
-        snprintf(q,7,"CH%02d: ",i);
+        snprintf(q,7,"CH%02u: ",i);
         v = getValue(q,1,254);
         if (v != INVALID) {
           bool chvalid = true;
