@@ -152,7 +152,7 @@ void handleCLI()
       }
       break;
     case 'g':
-      v = getValue("New packet size", 8, 32);
+      v = getValue("New packet size", MIN_PACKET_SIZE - 1, MAX_PACKET_SIZE - 1);
       if (v != INVALID) {
         bind_data.packetSize = v + 1;
         valid = true;

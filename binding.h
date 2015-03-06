@@ -22,6 +22,8 @@
 //  2 -- 19200bps, medium range
 #define DEFAULT_DATARATE 2
 #define DEFAULT_BAUDRATE 115200
+#define MAX_PACKET_SIZE 49
+#define MIN_PACKET_SIZE 9
 #define DEFAULT_PACKET_SIZE 33
 
 // CONFIG flag masks

@@ -181,10 +181,10 @@ static inline void checkOperatingMode()
   }
 }
 
-uint8_t tx_buf[33];
-uint8_t rx_buf[33];
+uint8_t tx_buf[MAX_PACKET_SIZE];
+uint8_t rx_buf[MAX_PACKET_SIZE];
 
-uint8_t pktbuf[32];
+uint8_t pktbuf[MAX_PACKET_SIZE-1];
 uint8_t pktindex = 0;
 uint8_t pktsize  = 0;
 // pktsize==0 waiting for next packet or in preamble
@@ -200,17 +200,19 @@ MASTER->SLAVE:
   byte0 : control (bitmasked)
   x------- seq_M_S master changes this when it is putting new data
   -x------ seq_S_M last bit seen by master is relayed back
-  --1xxxxx data packet xxxxx + 1 bytes of data attached
-    byte1... data (upto 32 if packetsize permits)
-    if possible rssi and quality are appended
-  --000000 idle
-  --0xxxxx reserved
+  --xxxxxx
+           x=0 idle
+	   x < MAX_PACKET_SIZE DATA
+	   else reserved
 
 SLAVE->MASTER
   byte0 : control (bitmasked)
   x------- seq_M_S - not needed
   -x------ seq_S_M -
-  --1xxxxx data packet xxxxx + 1 bytes of data attached
+  --xxxxxx
+           x=0 idle
+	   x < MAX_PACKET_SIZE DATAPACK
+	   else reserved  --1xxxxx data packet xxxxx + 1 bytes of data attached
     byte1... data (upto 32 if packetsize permits)
     if possible rssi and quality are appended
     byteN+1 RSSI
@@ -327,26 +329,32 @@ void slaveLoop()
       for (int16_t i = 0; i < bind_data.packetSize; i++) {
         rx_buf[i] = spiReadData();
       }
+
+      uint8_t payloadBytes = (rx_buf[0] & 0x3f);
+      if (payloadBytes > (bind_data.packetSize - 1)) {
+	// INVALID DATA
+	payloadBytes = 0;
+      }
+
       // Check if this is a new packet from master and not a resent one
       if ((rx_buf[0] ^ tx_buf[0]) & MASTER_SEQ) {
         tx_buf[0] ^= MASTER_SEQ;
-        if (rx_buf[0] & 0x20) {
+        if (payloadBytes) {
           // DATA FRAME
           if (bind_data.flags & PACKET_MODE) {
             serialWrite(0xf0);
-            serialWrite((rx_buf[0] & 0x1f) + 1);
+            serialWrite(payloadBytes);
           }
-          for (uint8_t i=0; i <= (rx_buf[0] & 0x1f); i++) {
+          for (uint8_t i=0; i < payloadBytes; i++) {
             serialWrite(rx_buf[1 + i]);
           }
         }
       }
 
       // extract peerRSSI if it is attached
-      if (rx_buf[0] & 0x20) {
-        uint8_t payload_bytes = (rx_buf[0] & 0x1f) + 1;
-        if ((payload_bytes + 1) < bind_data.packetSize ) {
-          peerRSSI = rx_buf[payload_bytes + 1];
+      if (payloadBytes) {
+        if ((payloadBytes + 1) < bind_data.packetSize ) {
+          peerRSSI = rx_buf[payloadBytes + 1];
         }
       } else {
         peerRSSI = rx_buf[1];
@@ -371,16 +379,16 @@ void slaveLoop()
         }
         tx_buf[0] &= MASTER_SEQ | SLAVE_SEQ;
         if (i) {
-          tx_buf[0] |= 0x20 + (i-1);
+          tx_buf[0] |= i;
           tx_buf[0] ^= SLAVE_SEQ;
         }
       }
 
       // fill in RSSI if it fits
-      if (tx_buf[0] & 0x20) {
-        uint8_t payload_bytes = (tx_buf[0] & 0x1f) + 1;
-        if ((payload_bytes + 1) < bind_data.packetSize ) {
-          tx_buf[payload_bytes + 1] = localRSSI;
+      payloadBytes = (tx_buf[0] & 0x3f);
+      if (payloadBytes) {
+        if ((payloadBytes + 1) < bind_data.packetSize ) {
+          tx_buf[payloadBytes + 1] = localRSSI;
         }
       } else {
         tx_buf[1] = localRSSI;
@@ -459,24 +467,27 @@ void masterLoop()
     for (int16_t i = 0; i < bind_data.packetSize; i++) {
       rx_buf[i] = spiReadData();
     }
+    uint8_t payloadBytes = rx_buf[0] & 0x3f;
+    if (payloadBytes > (bind_data.packetSize - 1)) {
+      payloadBytes = 0;
+    }
     if ((rx_buf[0] ^ tx_buf[0]) & SLAVE_SEQ) {
       tx_buf[0] ^= SLAVE_SEQ;
-      if (rx_buf[0] & 0x20) {
-        // DATA FRAME
-        if (bind_data.flags & PACKET_MODE) {
-          serialWrite(0xf0);
-          serialWrite((rx_buf[0] & 0x1f) + 1);
+      if (payloadBytes) {
+	// DATA FRAME
+	if (bind_data.flags & PACKET_MODE) {
+	  serialWrite(0xf0);
+	  serialWrite(payloadBytes);
         }
-        for (uint8_t i=0; i <= (rx_buf[0] & 0x1f); i++) {
+        for (uint8_t i=0; i < payloadBytes; i++) {
           serialWrite(rx_buf[1 + i]);
         }
       }
     }
     // extract peerRSSI if it is attached
-    if (rx_buf[0] & 0x20) {
-      uint8_t payload_bytes = (rx_buf[0] & 0x1f) + 1;
-      if ((payload_bytes + 1) < bind_data.packetSize ) {
-        peerRSSI = rx_buf[payload_bytes + 1];
+    if (payloadBytes) {
+      if ((payloadBytes + 1) < bind_data.packetSize ) {
+	peerRSSI = rx_buf[payloadBytes + 1];
       }
     } else {
       peerRSSI = rx_buf[1];
@@ -512,8 +523,8 @@ void masterLoop()
     if (!((rx_buf[0] ^ tx_buf[0]) & MASTER_SEQ)) {
       uint8_t i = 0;
       if (bind_data.flags & PACKET_MODE) {
-        if ((pktsize>0) && (pktindex==pktsize)) {
-          for (i=0; i < pktsize; i++) {
+        if ((pktsize > 0) && (pktindex == pktsize)) {
+          for (i = 0; i < pktsize; i++) {
             tx_buf[i + 1] = pktbuf[i];
           }
           pktsize=pktindex=0;
@@ -527,16 +538,16 @@ void masterLoop()
       }
       tx_buf[0] &= MASTER_SEQ | SLAVE_SEQ;
       if (i) {
-        tx_buf[0] |= 0x20 + (i-1);
+        tx_buf[0] |= i;
         tx_buf[0] ^= MASTER_SEQ;
       }
     }
 
     // fill in RSSI if it fits
-    if (tx_buf[0] & 0x20) {
-      uint8_t payload_bytes = (tx_buf[0] & 0x1f) + 1;
-      if ((payload_bytes + 1) < bind_data.packetSize ) {
-        tx_buf[payload_bytes + 1] = localRSSI;
+    uint8_t payloadBytes = tx_buf[0] & 0x3f;
+    if (payloadBytes) {
+      if ((payloadBytes + 1) < bind_data.packetSize ) {
+        tx_buf[payloadBytes + 1] = localRSSI;
       }
     } else {
       tx_buf[1] = localRSSI;
