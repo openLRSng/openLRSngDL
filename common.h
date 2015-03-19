@@ -464,7 +464,7 @@ void tx_packet_async(uint8_t* pkt, uint8_t size)
 void tx_packet(uint8_t* pkt, uint8_t size)
 {
   tx_packet_async(pkt, size);
-  while ((RF_Mode == Transmit) && ((micros() - tx_start) < 100000));
+  while ((RF_Mode == Transmit) && ((micros() - tx_start) < 300000));
   if (RF_Mode == Transmit) {
     printStrLn("TX timeout!");
   }
