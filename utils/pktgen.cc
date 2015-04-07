@@ -6,7 +6,7 @@
 #include<time.h>
 #include<fcntl.h>
 
-unsigned char packet[32];
+unsigned char packet[48];
 unsigned char head[2];
 
 long interval = 1000; //ms
@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
   }
 
   pktsize = strtol(argv[2],NULL,0);
-  if ((pktsize < 1) || (pktsize >32)) exit(2);
+  if ((pktsize < 1) || (pktsize >48)) exit(2);
 
   interval = strtol(argv[3],NULL,0);
   if ((interval < 0) || (interval>10000)) exit(2);
