@@ -32,6 +32,7 @@
 #define MUTE_TX             0x20
 #define PACKET_MODE         0x01
 #define STATUSPACKET_MODE   0x02
+#define PACKETCRC_MODE      0x04
 #define DEFAULT_FLAGS       0x00
 
 #define BINDING_POWER     0x06 // not lowest since may result fail with RFM23BP
@@ -109,24 +110,19 @@ void myEEPROMwrite(int16_t addr, uint8_t data)
   }
 }
 
-static uint16_t CRC16_value;
-
-inline void CRC16_reset()
-{
-  CRC16_value = 0;
-}
-
-void CRC16_add(uint8_t c) // CCITT polynome
+void CRC16_add(uint16_t *crcp, uint8_t c) // CCITT polynome
 {
   uint8_t i;
-  CRC16_value ^= (uint16_t)c << 8;
+  uint16_t crc = *crcp;
+  crc ^= (uint16_t)c << 8;
   for (i = 0; i < 8; i++) {
-    if (CRC16_value & 0x8000) {
-      CRC16_value = (CRC16_value << 1) ^ 0x1021;
+    if (crc & 0x8000) {
+      crc = (crc << 1) ^ 0x1021;
     } else {
-      CRC16_value = (CRC16_value << 1);
+      crc <<= 1;
     }
   }
+  *crcp = crc;
 }
 
 #define EEPROM_SIZE 1024 // EEPROM is 1k on 328p and 32u4
@@ -143,13 +139,14 @@ bool accessEEPROM(bool write)
   uint16_t addressNeedle = 0;
   uint16_t addressBase = 0;
   uint16_t CRC = 0;
+  uint16_t CRCv = 0;
 start:
   do {
     dataAddress = &bind_data;
     dataSize = sizeof(bind_data);
     addressNeedle = 0;
     addressNeedle += addressBase;
-    CRC16_reset();
+    CRCv = 0;
 
     for (uint8_t i = 0; i < dataSize; i++, addressNeedle++) {
       if (!write) {
@@ -158,13 +155,13 @@ start:
         myEEPROMwrite(addressNeedle, *((uint8_t*)dataAddress + i));
       }
 
-      CRC16_add(*((uint8_t*)dataAddress + i));
+      CRC16_add(&CRCv, *((uint8_t*)dataAddress + i));
     }
 
     if (!write) {
       CRC = eeprom_read_byte((uint8_t *)addressNeedle) << 8 | eeprom_read_byte((uint8_t *)(addressNeedle + 1));
 
-      if (CRC16_value == CRC) {
+      if (CRCv == CRC) {
         // recover corrupted data
         // write operation is performed after every successful read operation, this will keep all cells valid
         write = true;
@@ -174,8 +171,8 @@ start:
         // try next block
       }
     } else {
-      myEEPROMwrite(addressNeedle++, CRC16_value >> 8);
-      myEEPROMwrite(addressNeedle, CRC16_value & 0x00FF);
+      myEEPROMwrite(addressNeedle++, CRCv >> 8);
+      myEEPROMwrite(addressNeedle, CRCv & 0x00FF);
     }
     addressBase += EEPROM_DATASIZE;
   } while (addressBase <= (EEPROM_SIZE - EEPROM_DATASIZE));

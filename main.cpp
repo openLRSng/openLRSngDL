@@ -1,20 +1,15 @@
 // **********************************************************
-// ************************ openLRSng ***********************
+// ************************ openLRSngDL *********************
 // **********************************************************
 // ** by Kari Hautio - kha @ AeroQuad/RCGroups/IRC(Freenode)
 // ** other commits by cTn-dev, rlboyd, DTFUHF, pwarren
 //
 // Developer chat at IRC: #openLRS @ freenode
 //
-// This code is based on original OpenLRS and thUndeadMod
+// This code is based on OpenLRSng
 //
 // Donations for development tools and utilities (beer) here
 // https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DSWGKGKPRX5CS
-//
-// Please note that for basic usage there is no need to use this
-// code in source form. Instead use configurator program available
-// freely in Google Chrome store.
-// http://goo.gl/iX7dJx
 //
 // **********************************************************
 // ************ based on: OpenLRS thUndeadMod ***************
@@ -185,11 +180,8 @@ uint8_t tx_buf[MAX_PACKET_SIZE];
 uint8_t rx_buf[MAX_PACKET_SIZE];
 
 uint8_t pktbuf[MAX_PACKET_SIZE-1];
-uint8_t pktindex = 0;
+uint8_t pktindex = 100;
 uint8_t pktsize  = 0;
-// pktsize==0 waiting for next packet or in preamble
-// pktindex<pktsize reading data
-// pktindex==pktsize ready to send
 
 #define MASTER_SEQ 0x80
 #define SLAVE_SEQ  0x40
@@ -307,6 +299,8 @@ void setup(void)
 uint8_t state=0;
 uint8_t lostpkts=10; //slow hop at start
 
+uint16_t CRCtx, CRCrx;
+
 void slaveLoop()
 {
   watchdogReset();
@@ -332,8 +326,8 @@ void slaveLoop()
 
       uint8_t payloadBytes = (rx_buf[0] & 0x3f);
       if (payloadBytes > (bind_data.packetSize - 1)) {
-	// INVALID DATA
-	payloadBytes = 0;
+        // INVALID DATA
+        payloadBytes = 0;
       }
 
       // Check if this is a new packet from master and not a resent one
@@ -344,9 +338,17 @@ void slaveLoop()
           if (bind_data.flags & PACKET_MODE) {
             serialWrite(0xf0);
             serialWrite(payloadBytes);
+            CRCtx = 0;
           }
           for (uint8_t i=0; i < payloadBytes; i++) {
             serialWrite(rx_buf[1 + i]);
+            if ((bind_data.flags & PACKET_MODE) && (bind_data.flags & PACKETCRC_MODE)) {
+              CRC16_add(&CRCtx, rx_buf[1 + i]);
+            }
+          }
+          if ((bind_data.flags & PACKET_MODE) && (bind_data.flags & PACKETCRC_MODE)) {
+            serialWrite(CRCtx >> 8);
+            serialWrite(CRCtx & 0xff);
           }
         }
       }
@@ -364,11 +366,11 @@ void slaveLoop()
       if (!((rx_buf[0] ^ tx_buf[0]) & SLAVE_SEQ)) {
         uint8_t i = 0;
         if (bind_data.flags & PACKET_MODE) {
-          if ((pktsize>0) && (pktindex==pktsize)) {
+          if (pktindex == 255) {
             for (i=0; i < pktsize; i++) {
               tx_buf[i + 1] = pktbuf[i];
             }
-            pktsize=pktindex=0;
+            pktindex=100;
             serialWrite(0xf0);
             serialWrite(0xff);
           }
@@ -474,20 +476,28 @@ void masterLoop()
     if ((rx_buf[0] ^ tx_buf[0]) & SLAVE_SEQ) {
       tx_buf[0] ^= SLAVE_SEQ;
       if (payloadBytes) {
-	// DATA FRAME
-	if (bind_data.flags & PACKET_MODE) {
-	  serialWrite(0xf0);
-	  serialWrite(payloadBytes);
+        // DATA FRAME
+        if (bind_data.flags & PACKET_MODE) {
+          serialWrite(0xf0);
+          serialWrite(payloadBytes);
+          CRCtx = 0;
         }
         for (uint8_t i=0; i < payloadBytes; i++) {
           serialWrite(rx_buf[1 + i]);
+          if ((bind_data.flags & PACKET_MODE) && (bind_data.flags & PACKETCRC_MODE)) {
+            CRC16_add(&CRCtx, rx_buf[1 + i]);
+          }
+        }
+        if ((bind_data.flags & PACKET_MODE) && (bind_data.flags & PACKETCRC_MODE)) {
+          serialWrite(CRCtx >> 8);
+          serialWrite(CRCtx & 0xff);
         }
       }
     }
     // extract peerRSSI if it is attached
     if (payloadBytes) {
       if ((payloadBytes + 1) < bind_data.packetSize ) {
-	peerRSSI = rx_buf[payloadBytes + 1];
+        peerRSSI = rx_buf[payloadBytes + 1];
       }
     } else {
       peerRSSI = rx_buf[1];
@@ -523,11 +533,11 @@ void masterLoop()
     if (!((rx_buf[0] ^ tx_buf[0]) & MASTER_SEQ)) {
       uint8_t i = 0;
       if (bind_data.flags & PACKET_MODE) {
-        if ((pktsize > 0) && (pktindex == pktsize)) {
+        if (pktindex == 255) {
           for (i = 0; i < pktsize; i++) {
             tx_buf[i + 1] = pktbuf[i];
           }
-          pktsize=pktindex=0;
+          pktindex = 100;
           serialWrite(0xf0);
           serialWrite(0xff);
         }
@@ -587,25 +597,51 @@ void loop(void)
     Red_LED_OFF;
   }
 
+  // pktindex
+  // 0 - (pktsize-1) grabbing data
+  // 100 sync wait
+  // 101 sync seen
+  // 102 get crchi
+  // 103 get crclo
+  // 255 packet ready
+
   if (bind_data.flags & PACKET_MODE) {
-    while (serialAvailable() && ((pktsize == 0) || (pktindex < pktsize))) {
+    while (serialAvailable() && (pktindex != 255)) {
       uint8_t d = serialRead();
-      if (pktsize == 0) {
-        if (pktindex == 0) {
-          if (d == 0xf0) {
-            pktindex = 1;
+      if (pktindex == 100) {
+        if (d == 0xf0) {
+          pktindex = 101;
+        }
+      } else if (pktindex == 101) {
+        if ((d > 0) && (d < bind_data.packetSize)) {
+          pktsize = d;
+          pktindex = 0;
+          CRCrx = 0;
+        } else  {
+          // INVALID SIZE
+          if (d != 0xf0) { // leave to 101 if byte is 0xf0 (syncbyte)
+            pktindex = 100;
           }
-        } else if (pktindex == 1) {
-          if ((d > 0) && (d < bind_data.packetSize)) {
-            pktsize = d;
-            pktindex = 0;
-          } else if (d != 0xf0) { // exclude 0xf0 for faster sync
-            // INVALID SIZE
-            pktindex = 0;
-          }
+        }
+      } else if (pktindex == 102) {
+        CRCrx ^= ((uint16_t)d) << 8;
+        pktindex=103;
+      } else if (pktindex == 103) {
+        if (CRCrx == d) {
+          pktindex = 255;
+        } else {
+          serialWrite(0xf0);
+          serialWrite(0xfe);
+          pktindex = 100;
         }
       } else {
         pktbuf[pktindex++] = d;
+        if (bind_data.flags & PACKETCRC_MODE) {
+          CRC16_add(&CRCrx, d);
+        }
+        if (pktindex == pktsize) {
+          pktindex = (bind_data.flags & PACKETCRC_MODE) ? 102 : 255;
+        }
       }
     }
   }

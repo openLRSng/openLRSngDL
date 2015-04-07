@@ -30,7 +30,9 @@ void show()
   printStrLn((bind_data.flags & PACKET_MODE)?"Enabled":"Disabled");
   printStr("j) status packets : ");
   printStrLn((bind_data.flags & STATUSPACKET_MODE)?"Enabled":"Disabled");
-  printStr("k) hopschs: ");
+  printStr("k) append crc16 on packets : ");
+  printStrLn((bind_data.flags & PACKETCRC_MODE)?"Enabled":"Disabled");
+  printStr("l) hopschs: ");
   for (uint8_t i=0; (i<MAXHOPS) && (bind_data.hopchannel[i]); i++) {
     if (i) {
       printC(',');
@@ -173,7 +175,11 @@ void handleCLI()
       bind_data.flags ^= STATUSPACKET_MODE;
       valid = 1;
       break;
-    case 'k': {
+    case 'k':
+      bind_data.flags ^= PACKETCRC_MODE;
+      valid = 1;
+      break;
+    case 'l': {
       printStrLn("Enter channels one by one (1-254), invalid value or just enter to finish");
       uint8_t i=0;
       do {
