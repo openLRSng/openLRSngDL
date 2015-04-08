@@ -99,7 +99,7 @@ OUT_FOLDER=out
 #
 # Target object files
 #
-OBJS=main.o serial.o io.o system.o
+OBJS=main.o serial.o io.o system.o crc.o
 
 #
 # Master target

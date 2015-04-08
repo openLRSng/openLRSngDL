@@ -34,12 +34,12 @@
 #include<stdlib.h>
 #include<string.h>
 #include<avr/interrupt.h>
-#include<avr/pgmspace.h>
 #include "system.h"
 #include "io.h"
 #include "serial.h"
 #include "print.h"
 #include "version.h"
+#include "crc.h"
 #include "binding.h"
 #include "hardware.h"
 #include "wd.h"
