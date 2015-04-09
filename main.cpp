@@ -54,13 +54,11 @@ uint32_t lastReceived = 0;
 
 uint8_t peerRSSI = 0;
 uint8_t localRSSI = 0;
-bool    sampleRSSI = 0;
 
 uint16_t linkQuality = 0;
 uint8_t linkQualityPeer = 0;
 
 uint32_t packetInterval = 0;
-#define RSSI_OFFSET 2000 // sample RSSI 2ms before packet is done
 
 #ifndef BZ_FREQ
 #define BZ_FREQ 2000
@@ -314,7 +312,6 @@ void slaveLoop()
       Red_LED_OFF;
       // got packet
       lastReceived = now;
-      sampleRSSI = true;
       lostpkts=0;
       linkQuality = (linkQuality << 1) | 1;
 
@@ -406,14 +403,22 @@ void slaveLoop()
         serialWrite(peerRSSI);  // remote RSSI
         serialWrite(countSetBits(linkQuality)); // linkq
       }
+      localRSSI = 0;
     } else {
-      if ((sampleRSSI) && ((now - lastReceived) > (packetInterval - RSSI_OFFSET))) {
-        localRSSI = rfmGetRSSI();
-        sampleRSSI = false;
+      uint8_t tmp = rfmGetRSSI();
+      if (tmp > localRSSI) {
+        localRSSI = tmp;
       }
       if ((now - lastReceived) > (packetInterval + 500)) {
         Red_LED_ON;
-        linkQuality = (linkQuality << 1) | 1;
+        linkQuality = (linkQuality << 1);
+        if ((bind_data.flags & (PACKET_MODE | STATUSPACKET_MODE)) == (PACKET_MODE | STATUSPACKET_MODE)) {
+          serialWrite(0xf0);
+          serialWrite(0x00); // indicate this is status packet
+          serialWrite(localRSSI); // local RSSI
+          serialWrite(peerRSSI);  // remote RSSI
+          serialWrite(countSetBits(linkQuality)); // linkq
+        }
 
         if (lostpkts++ < 10) {
           needHop=1;
@@ -460,8 +465,6 @@ void masterLoop()
     // got packet
     Red_LED_OFF;
 
-    sampleRSSI = true;
-
     lastReceived = (micros() | 1);
     linkQuality |= 1;
     RF_Mode = Receive;
@@ -505,9 +508,9 @@ void masterLoop()
     }
   }
 
-  if ((sampleRSSI) && ((now - lastReceived) > (packetInterval - RSSI_OFFSET))) {
-    localRSSI = rfmGetRSSI();
-    sampleRSSI = false;
+  uint8_t tmp = rfmGetRSSI();
+  if (tmp > localRSSI) {
+    localRSSI = tmp;
   }
 
   if ((now - lastSent) >= packetInterval) {
@@ -578,6 +581,7 @@ void masterLoop()
       serialWrite(peerRSSI);  // remote RSSI
       serialWrite(countSetBits(linkQuality)); // linkq
     }
+    localRSSI = 0;
   }
 
   if (tx_done() == 1) {
