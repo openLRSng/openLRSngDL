@@ -5,6 +5,7 @@
 #include<unistd.h>
 #include<time.h>
 #include<fcntl.h>
+#include<errno.h>
 
 unsigned char packet[48];
 unsigned char head[2];
@@ -70,6 +71,8 @@ int main(int argc, char **argv) {
     if (nsecs > 1000000LL * interval) {
       if (interval) {
         write(fd,head,2);
+        if (0>write(fd,packet,pktsize))
+          exit(1);
         write(fd,packet,pktsize);
         if (appendcrc) {
           crc = 0;
@@ -89,9 +92,11 @@ int main(int argc, char **argv) {
     }
 
     unsigned char c;
-    while (1==read(fd,&c,1)) {
+    int r;
+    while ((r=read(fd,&c,1))>0) {
       printf("%s%02x ", (c == 0xf0)?"\n":"", c);
     }
+    if ((r<0) && (errno != EAGAIN)) exit(2);
 
     if (1==read(1,&c,1)) {
       if ((c=='+') && (interval<1000)) interval+=10;
