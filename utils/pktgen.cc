@@ -73,7 +73,6 @@ int main(int argc, char **argv) {
         write(fd,head,2);
         if (0>write(fd,packet,pktsize))
           exit(1);
-        write(fd,packet,pktsize);
         if (appendcrc) {
           crc = 0;
           // CRC16_add(head[0]);

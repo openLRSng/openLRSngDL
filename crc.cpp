@@ -40,6 +40,6 @@ void CRC16_add(uint16_t *crcp, uint8_t c) // CCITT polynome
 {
   uint16_t crc = *crcp;
   uint8_t index = (crc >> 8) ^ c;
-  *crcp = (crc << 8) ^ pgm_read_byte_near((uint16_t)crc16t + index);
+  *crcp = (crc << 8) ^ pgm_read_word_near(crc16t +index);
 }
 
