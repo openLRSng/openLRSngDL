@@ -8,15 +8,6 @@
 
 volatile uint8_t RF_Mode = 0;
 
-#define RX_FLYTRON8CH 0x01
-#define RX_OLRSNG4CH  0x02
-#define RX_OLRSNG12CH 0x03
-#define RX_DTFUHF10CH 0x04
-#define RX_PTOWER     0x05
-#define RX_MICRO      0x06
-#define RX_FLYTRONM3  0x07
-#define RX_BRORX      0x08
-
 //####### Board Pinouts #########
 
 #if (BOARD_TYPE == 0) // Flytron M1 TX
@@ -51,7 +42,7 @@ void buzzerOn(uint16_t freq)
 #define Red_LED    12
 #define Green_LED  11
 
-#define Red_LED_ON  PORTB |= _BV(4);
+#define Red_LED_ON   PORTB |= _BV(4);
 #define Red_LED_OFF  PORTB &= ~_BV(4);
 
 #define Green_LED_ON   PORTB |= _BV(3);
@@ -59,34 +50,34 @@ void buzzerOn(uint16_t freq)
 
 
 //## RFM22B Pinouts for Public Edition (M1 or Rx v1)
-#define  nIRQ_1 (PIND & 0x08)==0x08 //D3
-#define  nIRQ_0 (PIND & 0x08)==0x00 //D3
+#define  nIRQ_1 (PIND & _BV(3))
+#define  nIRQ_0 (!(PIND & _BV(3)))
 
-#define  nSEL_on PORTD |= (1<<4) //D4
-#define  nSEL_off PORTD &= 0xEF //D4
+#define  nSEL_on  PORTD |= _BV(4)
+#define  nSEL_off PORTD &= ~_BV(4)
 
-#define  SCK_on PORTD |= (1<<2) //D2
-#define  SCK_off PORTD &= 0xFB //D2
+#define  SCK_on  PORTD |= _BV(2)
+#define  SCK_off PORTD &= ~_BV(2)
 
-#define  SDI_on PORTC |= (1<<1) //C1
-#define  SDI_off PORTC &= 0xFD //C1
+#define  SDI_on  PORTC |= _BV(1)
+#define  SDI_off PORTC &= ~_BV(1)
 
-#define  SDO_1 (PINC & 0x01) == 0x01 //C0
-#define  SDO_0 (PINC & 0x01) == 0x00 //C0
+#define  SDO_1   (PINC & _BV(0))
+#define  SDO_0   (!(PINC & _BV(0)))
 
-#define SDO_pin A0
-#define SDI_pin A1
-#define SCLK_pin 2
-#define IRQ_pin 3
-#define nSel_pin 4
+#define SDO_pin  PIN_PC0
+#define SDI_pin  PIN_PC1
+#define SCLK_pin PIN_PD2
+#define IRQ_pin  PIN_PD3
+#define nSel_pin PIN_PD4
 
 void setupSPI()
 {
-  pinMode(SDO_pin, INPUT);   //SDO
-  pinMode(SDI_pin, OUTPUT);   //SDI
-  pinMode(SCLK_pin, OUTPUT);   //SCLK
-  pinMode(IRQ_pin, INPUT);   //IRQ
-  pinMode(nSel_pin, OUTPUT);   //nSEL
+  pinMode(SDO_pin,  INPUT);
+  pinMode(SDI_pin,  OUTPUT);
+  pinMode(SCLK_pin, OUTPUT);
+  pinMode(IRQ_pin,  INPUT);
+  pinMode(nSel_pin, OUTPUT);
 }
 
 #define IRQ_interrupt 1
@@ -108,17 +99,17 @@ void setupRfmInterrupt()
 
 #define TelemetrySerial Serial
 
-#define SLAVE_SELECT     5
-#define BUZZER_ACT 7
-#define BTN        8
+#define SLAVE_SELECT PIN_PD5
+#define BUZZER_ACT   PIN_PD7
+#define BTN          PIN_PB0
 
-#define Red_LED A3
-#define Green_LED A2
+#define Red_LED      PIN_PC3
+#define Green_LED    PIN_PC2
 
-#define Red_LED_ON  PORTC &= ~_BV(2);PORTC |= _BV(3);
+#define Red_LED_ON   PORTC &= ~_BV(2);PORTC |= _BV(3);
 #define Red_LED_OFF  PORTC &= ~_BV(2);PORTC &= ~_BV(3);
 
-#define Green_LED_ON  PORTC &= ~_BV(3);PORTC |= _BV(2);
+#define Green_LED_ON   PORTC &= ~_BV(3);PORTC |= _BV(2);
 #define Green_LED_OFF  PORTC &= ~_BV(3);PORTC &= ~_BV(2);
 
 void buzzerInit()
@@ -139,34 +130,34 @@ void buzzerOn(uint16_t freq)
 #define buzzerOff(foo) buzzerOn(0)
 
 //## RFM22B Pinouts for Public Edition (M1 or Rx v1)
-#define  nIRQ_1 (PIND & 0x08)==0x08 //D3
-#define  nIRQ_0 (PIND & 0x08)==0x00 //D3
+#define  nIRQ_1 (PIND & _BV(3))
+#define  nIRQ_0 (!(PIND & _BV(3)))
 
-#define  nSEL_on PORTD |= (1<<4) //D4
-#define  nSEL_off PORTD &= 0xEF //D4
+#define  nSEL_on  PORTD |= _BV(4) //D4
+#define  nSEL_off PORTD &= ~_BV(4)
 
-#define  SCK_on PORTD |= (1<<2) //D2
-#define  SCK_off PORTD &= 0xFB //D2
+#define  SCK_on  PORTD |= _BV(2)
+#define  SCK_off PORTD &= ~_BV(2)
 
-#define  SDI_on PORTC |= (1<<1) //C1
-#define  SDI_off PORTC &= 0xFD //C1
+#define  SDI_on  PORTC |= _BV(1)
+#define  SDI_off PORTC &= ~_BV(1)
 
-#define  SDO_1 (PINC & 0x01) == 0x01 //C0
-#define  SDO_0 (PINC & 0x01) == 0x00 //C0
+#define  SDO_1 (PINC & _BV(0))
+#define  SDO_0 (!(PINC & _BV(0)))
 
-#define SDO_pin A0
-#define SDI_pin A1
-#define SCLK_pin 2
-#define IRQ_pin 3
-#define nSel_pin 4
+#define SDO_pin  PIN_PC0
+#define SDI_pin  PIN_PC1
+#define SCLK_pin PIN_PD2
+#define IRQ_pin  PIN_PD3
+#define nSel_pin PIN_PD4
 
 void setupSPI()
 {
-  pinMode(SDO_pin, INPUT);   //SDO
-  pinMode(SDI_pin, OUTPUT);   //SDI
-  pinMode(SCLK_pin, OUTPUT);   //SCLK
-  pinMode(IRQ_pin, INPUT);   //IRQ
-  pinMode(nSel_pin, OUTPUT);   //nSEL
+  pinMode(SDO_pin,  INPUT);
+  pinMode(SDI_pin,  OUTPUT);
+  pinMode(SCLK_pin, OUTPUT);
+  pinMode(IRQ_pin,  INPUT);
+  pinMode(nSel_pin, OUTPUT);
 }
 
 #define IRQ_interrupt 0
@@ -208,30 +199,30 @@ void buzzerOn(uint16_t freq)
 
 #define TelemetrySerial Serial
 
-#define Red_LED          PIN_PB5
-#define Green_LED        PIN_PB4
+#define Red_LED    PIN_PB5
+#define Green_LED  PIN_PB4
 
-#define Red_LED_ON  PORTB |= _BV(5);
+#define Red_LED_ON   PORTB |= _BV(5);
 #define Red_LED_OFF  PORTB &= ~_BV(5);
 
 #define Green_LED_ON   PORTB |= _BV(4);
 #define Green_LED_OFF  PORTB &= ~_BV(4);
 
 //## RFM22B Pinouts for Public Edition (M2)
-#define  nIRQ_1 (PIND & 0x04)==0x04 //D2
-#define  nIRQ_0 (PIND & 0x04)==0x00 //D2
+#define  nIRQ_1 (PIND & _BV(2))
+#define  nIRQ_0 (!(PIND & _BV(2)))
 
-#define  nSEL_on PORTD |= (1<<4) //D4
-#define  nSEL_off PORTD &= 0xEF //D4
+#define  nSEL_on  PORTD |= _BV(4)
+#define  nSEL_off PORTD &= ~_BV(4)
 
-#define  SCK_on PORTD |= (1<<7) //D7
-#define  SCK_off PORTD &= 0x7F //D7
+#define  SCK_on  PORTD |= _BV(7)
+#define  SCK_off PORTD &= ~_BV(7)
 
-#define  SDI_on PORTB |= (1<<0) //B0
-#define  SDI_off PORTB &= 0xFE //B0
+#define  SDI_on  PORTB |= _BV(0)
+#define  SDI_off PORTB &= ~_BV(0)
 
-#define  SDO_1 (PINB & 0x02) == 0x02 //B1
-#define  SDO_0 (PINB & 0x02) == 0x00 //B1
+#define  SDO_1 (PINB & _BV(1))
+#define  SDO_0 (!(PINB & _BV(1)))
 
 #define SDO_pin  PIN_PB1
 #define SDI_pin  PIN_PB0
@@ -429,7 +420,7 @@ void buzzerOn(uint16_t freq)
 
 #define buzzerOff(foo) buzzerOn(0)
 
-#define Red_LED_ON  PORTD |= _BV(6);
+#define Red_LED_ON   PORTD |= _BV(6);
 #define Red_LED_OFF  PORTD &= ~_BV(6);
 
 #define Green_LED_ON   PORTD |= _BV(5);
@@ -438,20 +429,20 @@ void buzzerOn(uint16_t freq)
 // #define RF_OUT_INDICATOR A3 // only used for Futaba
 
 //## RFM22B Pinouts for Public Edition (M2)
-#define  nIRQ_1 (PIND & 0x04)==0x04 //D2
-#define  nIRQ_0 (PIND & 0x04)==0x00 //D2
+#define  nIRQ_1 (PIND & _BV(2))
+#define  nIRQ_0 (!(PIND & _BV(2)))
 
-#define  nSEL_on PORTD |= (1<<4) //D4
-#define  nSEL_off PORTD &= 0xEF //D4
+#define  nSEL_on  PORTD |= _BV(4)
+#define  nSEL_off PORTD &= ~_BV(4)
 
-#define  SCK_on  PORTB |= _BV(5)  //B5
-#define  SCK_off PORTB &= ~_BV(5) //B5
+#define  SCK_on  PORTB |= _BV(5)
+#define  SCK_off PORTB &= ~_BV(5)
 
-#define  SDI_on  PORTB |= _BV(3)  //B3
-#define  SDI_off PORTB &= ~_BV(3) //B3
+#define  SDI_on  PORTB |= _BV(3)
+#define  SDI_off PORTB &= ~_BV(3)
 
-#define  SDO_1 (PINB & _BV(4)) == _BV(4) //B4
-#define  SDO_0 (PINB & _BV(4)) == 0x00  //B4
+#define  SDO_1 (PINB & _BV(4))
+#define  SDO_0 (!(PINB & _BV(4)))
 
 #define SDO_pin 12
 #define SDI_pin 11
@@ -543,20 +534,20 @@ void buzzerOn(uint16_t freq)
 #define buzzerOff(foo) buzzerOn(0)
 
 //## RFM22B Pinouts for Public Edition (M2)
-#define  nIRQ_1 (PIND & 0x04)==0x04 //D2
-#define  nIRQ_0 (PIND & 0x04)==0x00 //D2
+#define  nIRQ_1 (PIND & _BV(2))
+#define  nIRQ_0 (!(PIND & _BV(2))) //D2
 
-#define  nSEL_on PORTD |= (1<<4) //D4
-#define  nSEL_off PORTD &= 0xEF //D4
+#define  nSEL_on  PORTD |= _BV(4) //D4
+#define  nSEL_off PORTD &= ~_BV(4)
 
-#define  SCK_on  PORTB |= _BV(5)  //B5
-#define  SCK_off PORTB &= ~_BV(5) //B5
+#define  SCK_on  PORTB |= _BV(5)
+#define  SCK_off PORTB &= ~_BV(5)
 
-#define  SDI_on  PORTB |= _BV(3)  //B3
-#define  SDI_off PORTB &= ~_BV(3) //B3
+#define  SDI_on  PORTB |= _BV(3)
+#define  SDI_off PORTB &= ~_BV(3)
 
-#define  SDO_1 (PINB & _BV(4)) == _BV(4) //B4
-#define  SDO_0 (PINB & _BV(4)) == 0x00  //B4
+#define  SDO_1 (PINB & _BV(4))
+#define  SDO_0 (!(PINB & _BV(4)))
 
 #define SDO_pin  PIN_PB4
 #define SDI_pin  PIN_PB3
@@ -639,8 +630,8 @@ void buzzerOn(uint16_t freq)
 #define Green_LED_OFF  PORTC &= ~(1<<PORTC6);
 
 //## RFM22B Pinouts for Public Edition (M2)
-#define  nIRQ_1 (PINB & (1<<PINB7))==(1<<PINB7) //PB7
-#define  nIRQ_0 (PINB & (1<<PINB7))==0x00 //PB7
+#define  nIRQ_1 (PINB & (1<<PINB7)) //PB7
+#define  nIRQ_0 (!(PINB & (1<<PINB7))) //PB7
 
 #define  nSEL_on PORTD |= (1<<PORTD6) //PD6
 #define  nSEL_off PORTD &= ~(1<<PORTD6) //PD6
@@ -651,10 +642,9 @@ void buzzerOn(uint16_t freq)
 #define  SDI_on  PORTB |= (1<<PORTB2)  //PB2 MOSI
 #define  SDI_off PORTB &= ~(1<<PORTB2) //PB2 MOSI
 
-#define  SDO_1 (PINB & (1<<PINB3)) == (1<<PINB3) //PB3 MISO
-#define  SDO_0 (PINB & (1<<PINB3)) == 0x00  //PB3 MISO
+#define  SDO_1 (PINB & (1<<PINB3)) //PB3 MISO
+#define  SDO_0 (!(PINB & (1<<PINB3)))  //PB3 MISO
 
-//can't do this, they are not D-pins on leonardo
 #define SDO_pin  PIN_PB3
 #define SDI_pin  PIN_PB2
 #define SCLK_pin PIN_PB1
