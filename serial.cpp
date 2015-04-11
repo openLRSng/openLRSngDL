@@ -18,13 +18,57 @@ uint32_t rxErrors = 0;
 
 bool txActive = false;
 
-ISR(USART_RX_vect)
+#if (__AVR_ATmega32U4__ == 1)
+#define _USART_RX_vect USART1_RX_vect
+#define _USART_UDRE_vect USART1_UDRE_vect
+#define _UCSRxA UCSR1A
+#define _UCSRxB UCSR1B
+#define _UCSRxC UCSR1C
+#define _UBRRxH UBRR1H
+#define _UBRRxL UBRR1L
+#define _U2Xx   U2X1
+#define _UPEx   UPE1
+#define _FEx    FE1
+#define _DORx   DOR1
+#define _UDRx   UDR1
+#define _UDRIEx UDRIE1
+#define _TXCx   TXC1
+#define _RXENx  RXEN1
+#define _TXENx  TXEN1
+#define _RXCIEx RXCIE1
+#define _UCSZx1 UCSZ11
+#define _UCSZx0 UCSZ10
+
+#else
+#define _USART_RX_vect USART_RX_vect
+#define _USART_UDRE_vect USART_UDRE_vect
+#define _UCSRxA UCSR0A
+#define _UCSRxB UCSR0B
+#define _UCSRxC UCSR0C
+#define _UBRRxH UBRR0H
+#define _UBRRxL UBRR0L
+#define _U2Xx   U2X0
+#define _UPEx   UPE0
+#define _FEx    FE0
+#define _DORx   DOR0
+#define _UDRx   UDR0
+#define _UDRIEx UDRIE0
+#define _TXCx   TXC0
+#define _RXENx  RXEN0
+#define _TXENx  TXEN0
+#define _RXCIEx RXCIE0
+#define _UCSZx1 UCSZ01
+#define _UCSZx0 UCSZ00
+
+#endif
+
+ISR(_USART_RX_vect)
 {
-  if (!(UCSR0A & ((1<<UPE0) | (1<<FE0)))) {
-    if (UCSR0A & (1<<DOR0)) {
+  if (!(_UCSRxA & ((1<<_UPEx) | (1<<_FEx)))) {
+    if (_UCSRxA & (1<<_DORx)) {
       rxDropped++;
     }
-    unsigned char c = UDR0;
+    unsigned char c = _UDRx;
     uint8_t i = (rxFIFO.head + 1) % FIFOSIZE;
     if (i != rxFIFO.tail) {
       rxFIFO.buf[rxFIFO.head] = c;
@@ -33,17 +77,17 @@ ISR(USART_RX_vect)
       rxDropped++;
     }
   } else {
-    UDR0,rxErrors++;
+    _UDRx,rxErrors++;
   }
 }
 
-ISR(USART_UDRE_vect)
+ISR(_USART_UDRE_vect)
 {
   if (txFIFO.head != txFIFO.tail) {
-    UDR0 = txFIFO.buf[txFIFO.tail];
+    _UDRx = txFIFO.buf[txFIFO.tail];
     txFIFO.tail = (txFIFO.tail + 1) % FIFOSIZE;
   } else {
-    UCSR0B &= ~(1 << UDRIE0);
+    _UCSRxB &= ~(1 << _UDRIEx);
   }
 }
 
@@ -58,9 +102,9 @@ bool serialWrite(unsigned char  c)
   } else {
     return true; // overrun
   }
-  UCSR0B |= (1 << UDRIE0);
+  _UCSRxB |= (1 << _UDRIEx);
   txActive = true;
-  UCSR0A |= (1 << TXC0);
+  _UCSRxA |= (1 << _TXCx);
   return 0;
 }
 
@@ -84,7 +128,7 @@ void serialFlush()
   while (serialAvailable()) {
     serialRead();
   }
-  while (txActive && !(UCSR0A & (1<<TXC0)));
+  while (txActive && !(_UCSRxA & (1<<_TXCx)));
   txActive = false;
 }
 
@@ -106,12 +150,12 @@ retry_with_u2x:
     u2x = 0;
     goto retry_with_u2x;
   }
-  UBRR0H = brd >> 8;
-  UBRR0L = brd & 0xff;
+  _UBRRxH = brd >> 8;
+  _UBRRxL = brd & 0xff;
 
-  UCSR0A = (u2x?(1<<U2X0):0);
-  UCSR0B = (1<<RXCIE0) | (1<<RXEN0) | (1<<TXEN0);
-  UCSR0C = (1<<UCSZ01) | (1<<UCSZ00);
+  _UCSRxA = (u2x ? (1<<_U2Xx) : 0);
+  _UCSRxB = (1<<_RXCIEx) | (1<<_RXENx) | (1<<_TXENx);
+  _UCSRxC = (1<<_UCSZx1) | (1<<_UCSZx0);
 
 }
 

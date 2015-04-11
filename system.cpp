@@ -90,5 +90,10 @@ void init()
   ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0) | (1 << ADEN);
 #endif
   // release USART pins
+#if defined(UCSR0B)
   UCSR0B = 0;
+#endif
+#if defined(UCSR1B)
+  UCSR1B = 0;
+#endif
 }
