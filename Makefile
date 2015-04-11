@@ -14,7 +14,7 @@
 #
 BOARD_TYPE=3
 #BOARD_TYPES=0 2 3 4 5 6 7 8 9
-BOARD_TYPES=2 3
+BOARD_TYPES=2 3 5 6
 
 #
 # No real user options below here.

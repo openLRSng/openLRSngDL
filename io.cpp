@@ -2,13 +2,13 @@
 #include <avr/io.h>
 
 #if defined(PIN_PF0)
-static volatile uint8_t *ddrs[]  = {&DDRB,  &DDRC,  &DDRD, &DDRE, &DDRE};
+static volatile uint8_t *ddrs[]  = {&DDRB,  &DDRC,  &DDRD,  &DDRE,  &DDRE};
 static volatile uint8_t *ports[] = {&PORTB, &PORTC, &PORTD, &PORTE, &PORTF};
-static volatile uint8_t *pins[]  = {&PINB,  &PINC,  &PIND, &PINE, &PINF};
+static volatile uint8_t *pins[]  = {&PINB,  &PINC,  &PIND,  &PINE,  &PINF};
 #elif defined(PIN_PE0)
-static volatile uint8_t *ddrs[]  = {&DDRB,  &DDRC,  &DDRD, &DDRE};
+static volatile uint8_t *ddrs[]  = {&DDRB,  &DDRC,  &DDRD,  &DDRE};
 static volatile uint8_t *ports[] = {&PORTB, &PORTC, &PORTD, &PORTE};
-static volatile uint8_t *pins[]  = {&PINB,  &PINC,  &PIND, &PINE};
+static volatile uint8_t *pins[]  = {&PINB,  &PINC,  &PIND,  &PINE};
 #else
 static volatile uint8_t *ddrs[]  = {&DDRB,  &DDRC,  &DDRD};
 static volatile uint8_t *ports[] = {&PORTB, &PORTC, &PORTD};

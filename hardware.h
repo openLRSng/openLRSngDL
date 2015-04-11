@@ -486,14 +486,14 @@ void setupRfmInterrupt()
 
 #define TelemetrySerial Serial
 
-#define SLAVE_SELECT 8 // ICP1
+#define SLAVE_SELECT PIN_PB0 // ICP1
 
-//#define TX_AIN0 A4 // SDA
-//#define TX_AIN1 A5 // SCL
+//#define TX_AIN0 PIN_PC4 // SDA
+//#define TX_AIN1 PIN_PC5 // SCL
 
-#define BUZZER_PAS  3  // OCR2B
-#define BUZZER_ACT A5
-#define BTN     A4
+#define BUZZER_PAS  PIN_PD3  // OCR2B
+#define BUZZER_ACT  PIN_PC5
+#define BTN         PIN_PC4
 
 void buzzerInit()
 {
@@ -530,11 +530,11 @@ void buzzerOn(uint16_t freq)
   }
 }
 
-#define Red_LED 6
-#define Green_LED 5
+#define Red_LED   PIN_PD6
+#define Green_LED PIN_PD5
 
-#define Red_LED2   A0
-#define Green_LED2 A1
+#define Red_LED2   PIN_PC0
+#define Green_LED2 PIN_PC1
 #define Red_LED_ON    { PORTD |=  _BV(6); PORTC |=  _BV(0); }
 #define Red_LED_OFF   { PORTD &= ~_BV(6); PORTC &= ~_BV(0); }
 #define Green_LED_ON  { PORTD |=  _BV(5); PORTC |=  _BV(1); }
@@ -558,11 +558,11 @@ void buzzerOn(uint16_t freq)
 #define  SDO_1 (PINB & _BV(4)) == _BV(4) //B4
 #define  SDO_0 (PINB & _BV(4)) == 0x00  //B4
 
-#define SDO_pin 12
-#define SDI_pin 11
-#define SCLK_pin 13
-#define IRQ_pin 2
-#define nSel_pin 4
+#define SDO_pin  PIN_PB4
+#define SDI_pin  PIN_PB3
+#define SCLK_pin PIN_PB5
+#define IRQ_pin  PIN_PD2
+#define nSel_pin PIN_PD4
 
 void setupSPI()
 {
@@ -571,14 +571,21 @@ void setupSPI()
   pinMode(SCLK_pin, OUTPUT);   //SCLK
   pinMode(IRQ_pin, INPUT);   //IRQ
   pinMode(nSel_pin, OUTPUT);   //nSEL
+  EICRA &= ~(1<<ISC00);
+  EICRA |= (1<<ISC01);
+  EIMSK |= (1<<INT0);
 }
 
-#define IRQ_interrupt 0
-void setupRfmInterrupt()
+ISR(INT0_vect)
 {
-  attachInterrupt(IRQ_interrupt, RFM22B_Int, FALLING);
-}
+  if (RF_Mode == Transmit) {
+    RF_Mode = Transmitted;
+  }
 
+  if (RF_Mode == Receive) {
+    RF_Mode = Received;
+  }
+}
 #endif
 
 #if (BOARD_TYPE == 6) // DTF UHF DeluxeTX
@@ -648,19 +655,19 @@ void buzzerOn(uint16_t freq)
 #define  SDO_0 (PINB & (1<<PINB3)) == 0x00  //PB3 MISO
 
 //can't do this, they are not D-pins on leonardo
-//#define SDO_pin x //PB3
-//#define SDI_pin x //PB2
-//#define SCLK_pin x //PB1
-#define IRQ_pin 11 //PB7
-#define nSel_pin 12
+#define SDO_pin  PIN_PB3
+#define SDI_pin  PIN_PB2
+#define SCLK_pin PIN_PB1
+#define IRQ_pin  PIN_PB7
+#define nSel_pin PIN_PD6
 
 
 void setupSPI()
 {
-  DDRB |= (1<<DDB1); // SCK PB1 output
-  DDRB |= (1<<DDB2); // SDI/MOSI PB2 output
-  DDRB &= ~(1<<DDB3); // SDO/MISO PB3 input
-  pinMode(IRQ_pin, INPUT);   //IRQ
+  pinMode(SCLK_pin, OUTPUT);
+  pinMode(SDI_pin,  OUTPUT);
+  pinMode(SDO_pin,  INPUT);
+  pinMode(IRQ_pin,  INPUT);   //IRQ
   pinMode(nSel_pin, OUTPUT);   //nSEL
 }
 
