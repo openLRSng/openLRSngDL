@@ -25,6 +25,24 @@
 #define PIN_PD5 0x25
 #define PIN_PD6 0x26
 #define PIN_PD7 0x27
+#if (__AVR_ATmega32U4__ == 1)
+#define PIN_PE0 0x30
+#define PIN_PE1 0x31
+#define PIN_PE2 0x32
+#define PIN_PE3 0x33
+#define PIN_PE4 0x34
+#define PIN_PE5 0x35
+#define PIN_PE6 0x36
+#define PIN_PE7 0x37
+#define PIN_PF0 0x30
+#define PIN_PF1 0x31
+#define PIN_PF2 0x32
+#define PIN_PF3 0x33
+#define PIN_PF4 0x34
+#define PIN_PF5 0x35
+#define PIN_PF6 0x36
+#define PIN_PF7 0x37
+#endif
 
 #define INPUT  0
 #define OUTPUT 1

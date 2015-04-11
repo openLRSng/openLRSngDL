@@ -588,16 +588,16 @@ void setupRfmInterrupt()
 
 #define TelemetrySerial Serial1
 
-#define SLAVE_SELECT 4 // ICP1
+#define SLAVE_SELECT PIN_PD4 // ICP1
 
 //#define TX_AIN_IS_DIGITAL
-//#define TX_AIN0 2 // SDA
-//#define TX_AIN1 3 // SCL
+//#define TX_AIN0 PIN_PD1 // SDA
+//#define TX_AIN1 PIN_PD0 // SCL
 
-#define BUZZER_PAS 10 // OCR4B
-#define BTN A0
-#define Red_LED 6 //PD7
-#define Green_LED 5 //PC6
+#define BUZZER_PAS PIN_PB6
+#define BTN        PIN_PF7
+#define Red_LED    PIN_PD7
+#define Green_LED  PIN_PC6
 
 void buzzerInit()
 {
@@ -673,7 +673,12 @@ void setupRfmInterrupt()
 ISR(PCINT0_vect)
 {
   if(nIRQ_0) { //check if pin is low
-    RFM22B_Int();
+    if (RF_Mode == Transmit) {
+      RF_Mode = Transmitted;
+    }
+    if (RF_Mode == Receive) {
+      RF_Mode = Received;
+    }
   }
 }
 

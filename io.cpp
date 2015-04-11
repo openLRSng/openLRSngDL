@@ -1,9 +1,19 @@
 #include "io.h"
 #include <avr/io.h>
 
-static volatile uint8_t *ddrs[3]  = {&DDRB,  &DDRC,  &DDRD};
-static volatile uint8_t *ports[3] = {&PORTB, &PORTC, &PORTD};
-static volatile uint8_t *pins[3]  = {&PINB,  &PINC,  &PIND};
+#if defined(PIN_PF0)
+static volatile uint8_t *ddrs[]  = {&DDRB,  &DDRC,  &DDRD, &DDRE, &DDRE};
+static volatile uint8_t *ports[] = {&PORTB, &PORTC, &PORTD, &PORTE, &PORTF};
+static volatile uint8_t *pins[]  = {&PINB,  &PINC,  &PIND, &PINE, &PINF};
+#elif defined(PIN_PE0)
+static volatile uint8_t *ddrs[]  = {&DDRB,  &DDRC,  &DDRD, &DDRE};
+static volatile uint8_t *ports[] = {&PORTB, &PORTC, &PORTD, &PORTE};
+static volatile uint8_t *pins[]  = {&PINB,  &PINC,  &PIND, &PINE};
+#else
+static volatile uint8_t *ddrs[]  = {&DDRB,  &DDRC,  &DDRD};
+static volatile uint8_t *ports[] = {&PORTB, &PORTC, &PORTD};
+static volatile uint8_t *pins[]  = {&PINB,  &PINC,  &PIND};
+#endif
 
 void pinMode(uint8_t pin, bool output)
 {
