@@ -47,7 +47,9 @@ void show()
   printStr("us   rate: ");
   printUL(1000000UL/getInterval(&bind_data));
   printStrLn("Hz");
-
+  printStr("Theoretic maximum bandwidth (duplex): ");
+  printUL(32UL*1000000UL/getInterval(&bind_data));
+  printStrLn(" bytes/s");
   printLf();
   printStrLn("[s]ave [q]uit [p]rint ch freqs");
   printStrLn("Randomize hops per: [r]ssi [u]random");
