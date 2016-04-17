@@ -3,6 +3,8 @@
 
 #define FIFOSIZE 128
 
+const char* serial_bits_str[] = {"8N1","8N2","8E1","8E2","8O1","8O2"};
+
 struct fifo {
   uint8_t head;
   uint8_t tail;
@@ -38,6 +40,9 @@ bool txActive = false;
 #define _RXCIEx RXCIE1
 #define _UCSZx1 UCSZ11
 #define _UCSZx0 UCSZ10
+#define _USBSx  USBS1
+#define _UPMx0  UPM10
+#define _UPMx1  UPM11
 
 #else
 #define _USART_RX_vect USART_RX_vect
@@ -59,7 +64,9 @@ bool txActive = false;
 #define _RXCIEx RXCIE0
 #define _UCSZx1 UCSZ01
 #define _UCSZx0 UCSZ00
-
+#define _USBSx  USBS0
+#define _UPMx0  UPM00
+#define _UPMx1  UPM01
 #endif
 
 ISR(_USART_RX_vect)
@@ -139,7 +146,7 @@ void serialWriteSync(uint8_t c)
   while (serialWrite(c));
 }
 
-void serialInit(uint32_t baudrate)
+void serialInit(uint32_t baudrate, uint8_t bits)
 {
   bool u2x = 1;
   uint16_t brd;
@@ -157,5 +164,15 @@ retry_with_u2x:
   _UCSRxB = (1<<_RXCIEx) | (1<<_RXENx) | (1<<_TXENx);
   _UCSRxC = (1<<_UCSZx1) | (1<<_UCSZx0);
 
+  // bits == 0=8N1 1=8N2 2=8E1 3=8E2 4=8O1 5=8O2, rest undef.
+  if (bits & 1) { // 2 stop bit mode
+    _UCSRxC |= _USBSx;
+  }
+  if (bits > 2) { //parity enabled
+    _UCSRxC |= _UPMx1;
+    if (bits > 4) { // odd parity
+      _UCSRxC |= _UPMx0;
+    }
+  }
 }
 

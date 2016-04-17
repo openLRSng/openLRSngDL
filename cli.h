@@ -8,7 +8,9 @@ void show()
   printStr(" module type ");
   printULLn(bind_data.rfmType);
   printStr("a) serial baudrate: ");
-  printULLn(bind_data.serial_baudrate);
+  printUL(bind_data.serial_baudrate);
+  printStr(" t) serial mode: ");
+  printStrLn(serial_bits_str[bind_data.serial_mode]);
   printStr("b) base frequency:  ");
   printULLn(bind_data.rf_frequency);
   printStr("c) max frequency:   ");
@@ -179,6 +181,13 @@ void handleCLI()
       bind_data.flags ^= PACKETCRC_MODE;
       valid = 1;
       break;
+    case 't':
+      bind_data.serial_mode++;
+      if (bind_data.serial_mode > 5) {
+        bind_data.serial_mode=0;
+      }
+      valid = 1;
+      break;
     case 'l': {
       printStrLn("Enter channels one by one (1-254), invalid value or just enter to finish");
       uint8_t i=0;
@@ -237,7 +246,7 @@ void handleCLI()
     case 's':
       bindWriteEeprom();
       printStrLn("SAVED!!");
-    // fallthru
+      // fallthru
     case 'q':
       bindReadEeprom();
       cliActive = false;

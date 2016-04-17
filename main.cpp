@@ -234,7 +234,7 @@ void setup(void)
   digitalWrite(SLAVE_SELECT, HIGH); // enable pullup for TX:s with open collector output
   buzzerInit();
 
-  serialInit(115200);
+  serialInit(115200,SERIAL_8N1);
 
   checkOperatingMode();
 
@@ -276,7 +276,7 @@ void setup(void)
   printStrLn("Entering normal mode");
 
   serialFlush();
-  serialInit(bind_data.serial_baudrate);
+  serialInit(bind_data.serial_baudrate, bind_data.serial_mode);
 
   Red_LED_OFF;
   buzzerOff();
@@ -436,7 +436,7 @@ void slaveLoop()
   case 1: // waiting TX completion
     switch (tx_done()) {
     case 2: // tx timeout
-    // rfm init ??
+      // rfm init ??
     case 1: // ok
       Green_LED_OFF;
       state = 0;

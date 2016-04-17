@@ -22,6 +22,7 @@
 //  2 -- 19200bps, medium range
 #define DEFAULT_DATARATE 2
 #define DEFAULT_BAUDRATE 115200
+#define DEFAULT_SMODE 0
 #define MAX_PACKET_SIZE 49
 #define MIN_PACKET_SIZE 9
 #define DEFAULT_PACKET_SIZE 33
@@ -65,6 +66,7 @@ static uint8_t default_hop_list[] = {DEFAULT_HOPLIST};
 struct bind_data {
   uint8_t  version;
   uint32_t serial_baudrate;
+  uint8_t  serial_mode;
   uint32_t rf_frequency;
   uint32_t rf_magic;
   uint8_t  rf_power;
@@ -173,6 +175,7 @@ void bindInitDefaults(void)
 {
   bind_data.version = BINDING_VERSION;
   bind_data.serial_baudrate = DEFAULT_BAUDRATE;
+  bind_data.serial_mode = DEFAULT_SMODE;
   bind_data.rf_power = DEFAULT_RF_POWER;
   bind_data.rf_frequency = DEFAULT_CARRIER_FREQUENCY;
   bind_data.rf_channel_spacing = DEFAULT_CHANNEL_SPACING;
