@@ -372,7 +372,7 @@ ISR(INT0_vect)
 
 #define TelemetrySerial Serial
 
-#define SLAVE_SELECT 8 // ICP1
+#define SLAVE_SELECT PIN_PB0 // ICP1
 
 //#define TX_AIN0 A4 // SDA
 //#define TX_AIN1 A5 // SCL
@@ -380,10 +380,10 @@ ISR(INT0_vect)
 //#define TX_MODE1 A1
 //#define TX_MODE2 A2
 
-#define BUZZER_PAS 3 // OCR2B
-#define BTN A0
-#define Red_LED 6
-#define Green_LED 5
+#define BUZZER_PAS PIN_PD3 // OCR2B
+#define BTN PIN_PC0
+#define Red_LED PIN_PD6
+#define Green_LED PIN_PD5
 
 //#define RF_OUT_INDICATOR A3 // only used for Futaba
 
@@ -444,12 +444,12 @@ void buzzerOn(uint16_t freq)
 #define  SDO_1 (PINB & _BV(4))
 #define  SDO_0 (!(PINB & _BV(4)))
 
-#define SDO_pin 12
-#define SDI_pin 11
-#define SCLK_pin 13
-#define IRQ_pin 2
-#define nSel_pin 4
-#define SDN_pin 9
+#define SDO_pin PIN_PB4
+#define SDI_pin PIN_PB3
+#define SCLK_pin PIN_PB5
+#define IRQ_pin PIN_PD2
+#define nSel_pin PIN_PD4
+#define SDN_pin PIN_PB1
 
 void setupSPI()
 {
@@ -460,12 +460,16 @@ void setupSPI()
   pinMode(nSel_pin, OUTPUT);   //nSEL
 }
 
-#define IRQ_interrupt 0
-void setupRfmInterrupt()
+ISR(INT0_vect)
 {
-  attachInterrupt(IRQ_interrupt, RFM22B_Int, FALLING);
-}
+  if (RF_Mode == Transmit) {
+    RF_Mode = Transmitted;
+  }
 
+  if (RF_Mode == Receive) {
+    RF_Mode = Received;
+  }
+}
 #define SWAP_GPIOS
 
 #endif
