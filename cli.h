@@ -3,38 +3,38 @@ static char linebuf[16];
 
 void show()
 {
-  printStr("OpenLRSngDataLink ");
+  printStr("OpenLRSngDL ");
   printVersion(version);
-  printStr(" module type ");
+  printStr(" module:");
   printULLn(bind_data.rfmType);
-  printStr("a) serial baudrate: ");
+  printStr("a) serial baud: ");
   printUL(bind_data.serial_baudrate);
-  printStr(" t) serial mode: ");
+  printStr(" t) mode: ");
   printStrLn(serial_bits_str[bind_data.serial_mode]);
-  printStr("b) base frequency:  ");
+  printStr("b) base frq:  ");
   printULLn(bind_data.rf_frequency);
-  printStr("c) max frequency:   ");
+  printStr("c) max frq:   ");
   printULLn(bind_data.maxFrequency);
-  printStr("d) channel spacing: ");
+  printStr("d) channel spc: ");
   printULLn(bind_data.rf_channel_spacing);
-  printStr("e) RF power:        ");
+  printStr("e) Power:        ");
   printULLn(bind_data.rf_power);
-  printStr("f) RF parameters:   ");
+  printStr("f) RF params:   ");
   printUL(bind_data.modem_params);
   printStr(" (");
   printUL(modem_params[bind_data.modem_params].bps);
   printStrLn("bps)");
-  printStr("g) packet size:     ");
+  printStr("g) pkt size:     ");
   printULLn(bind_data.packetSize - 1);
   printStr("h) magic:           ");
   printULLn(bind_data.rf_magic);
-  printStr("i) packetmode     : ");
-  printStrLn((bind_data.flags & PACKET_MODE)?"Enabled":"Disabled");
-  printStr("j) status packets : ");
-  printStrLn((bind_data.flags & STATUSPACKET_MODE)?"Enabled":"Disabled");
-  printStr("k) append crc16 on packets : ");
-  printStrLn((bind_data.flags & PACKETCRC_MODE)?"Enabled":"Disabled");
-  printStr("l) hopschs: ");
+  printStr("i) pktmode     : ");
+  printULLn((bind_data.flags & PACKET_MODE)?1:0);
+  printStr("j)  status: ");
+  printULLn((bind_data.flags & STATUSPACKET_MODE)?1:0);
+  printStr("k)  crc16 : ");
+  printULLn((bind_data.flags & PACKETCRC_MODE)?1:0);
+  printStr("l) CHs: ");
   for (uint8_t i=0; (i<MAXHOPS) && (bind_data.hopchannel[i]); i++) {
     if (i) {
       printC(',');
@@ -42,17 +42,17 @@ void show()
     printUL(bind_data.hopchannel[i]);
   }
   printLf();
-  printStr("Packet interval: ");
+  printStr("Pkt interval: ");
   printUL(getInterval(&bind_data));
   printStr("us   rate: ");
   printUL(1000000UL/getInterval(&bind_data));
   printStrLn("Hz");
-  printStr("Theoretic maximum bandwidth (duplex): ");
+  printStr("Max bw: ");
   printUL((unsigned long)(bind_data.packetSize - 1) * 1000000UL / getInterval(&bind_data));
-  printStrLn(" bytes/s");
+  printStrLn(" B/s");
   printLf();
-  printStrLn("[s]ave [q]uit [p]rint ch freqs");
-  printStrLn("Randomize hops per: [r]ssi [u]random");
+  printStrLn("[s]ave [q]uit [p]rint CHs");
+  printStrLn("Randomize: [r]ssi [u]random");
 }
 
 #define INVALID 0xffffffff
@@ -191,7 +191,7 @@ void handleCLI()
       valid = 1;
       break;
     case 'l': {
-      printStrLn("Enter channels one by one (1-254), invalid value or just enter to finish");
+      printStrLn("Enter chs(1-254), just enter to finish");
       uint8_t i=0;
       do {
         char q[7];
@@ -227,7 +227,7 @@ void handleCLI()
     }
     break;
     case 'p':
-      printStrLn("Hop channel frequencies:");
+      printStrLn("Hop ch frqs:");
       for (uint8_t i=0; (i<MAXHOPS) && (bind_data.hopchannel[i]); i++) {
         printStr("CH");
         printUL(i);
@@ -257,9 +257,9 @@ void handleCLI()
     }
     if (validShow) {
       if (valid) {
-        printStrLn("New value accepted");
+        printStrLn("OK");
       } else  {
-        printStrLn("New value rejected");
+        printStrLn("NAK");
       }
     }
   }

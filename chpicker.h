@@ -1,5 +1,7 @@
 //OpenLRSng adaptive channel picker
 
+// #define DEBUG_PICKER
+
 inline void swap(uint8_t *a, uint8_t i, uint8_t j)
 {
   uint8_t c = a[i];
@@ -18,13 +20,13 @@ inline void isort(uint8_t *a, uint8_t n)
 
 uint8_t chooseChannelsPerRSSI()
 {
-  uint8_t chRSSImax[255];
+  static uint8_t chRSSImax[255];
   uint8_t picked[20];
   uint8_t n;
 
   for (n = 0; (n < MAXHOPS) && (bind_data.hopchannel[n] != 0); n++);
 
-  printStrLn("Entering adaptive channel selection, picking:");
+  printStr("Entering adaptive channel selection, picking: ");
   printULLn(n);
   init_rfm(0);
   rx_reset();
@@ -34,6 +36,9 @@ uint8_t chooseChannelsPerRSSI()
     printStr("/255)\r");
 
     uint32_t start = millis();
+#ifdef DEBUG_PICKER
+    printULLn(bind_data.rf_frequency + (uint32_t)ch * (uint32_t)bind_data.rf_channel_spacing * 10000UL);
+#endif
     if ((bind_data.rf_frequency + (uint32_t)ch * (uint32_t)bind_data.rf_channel_spacing * 10000UL) > bind_data.maxFrequency) {
       chRSSImax[ch] = 255;
       continue; // do not break so we set all maxes to 255 to block them out
@@ -55,6 +60,14 @@ uint8_t chooseChannelsPerRSSI()
       Red_LED_OFF
     }
   }
+
+#ifdef DEBUG_PICKER
+  for (uint8_t ch=1; ch<255; ch++) {
+    printUL(ch);
+    printC(',');
+    printULLn(chRSSImax[ch]);
+  }
+#endif
 
   for (uint8_t i = 0; i < n; i++) {
     uint8_t lowest = 1, lowestRSSI = 255;
@@ -80,12 +93,36 @@ uint8_t chooseChannelsPerRSSI()
     }
   }
 
+#ifdef DEBUG_PICKER
+  for (uint8_t i=0; i<n; i++) {
+    printUL(picked[i]);
+    printC(',');
+  }
+  printLf();
+#endif
+
   isort(picked, n);
+
+#ifdef DEBUG_PICKER
+  for (uint8_t i=0; i<n; i++) {
+    printUL(picked[i]);
+    printC(',');
+  }
+  printLf();
+#endif
 
   // this is empirically a decent way to shuffle changes to give decent hops
   for (uint8_t i = 0; i < (n / 2); i += 2) {
     swap(picked, i, i + n / 2);
   }
+
+#ifdef DEBUG_PICKER
+  for (uint8_t i=0; i<n; i++) {
+    printUL(picked[i]);
+    printC(',');
+  }
+  printLf();
+#endif
 
   for (uint8_t i = 0; i < n; i++) {
     bind_data.hopchannel[i] = picked[i];
