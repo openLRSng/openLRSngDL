@@ -458,6 +458,9 @@ void setupSPI()
   pinMode(SCLK_pin, OUTPUT);   //SCLK
   pinMode(IRQ_pin, INPUT);   //IRQ
   pinMode(nSel_pin, OUTPUT);   //nSEL
+  EICRA &= ~(1<<ISC00);
+  EICRA |= (1<<ISC01);
+  EIMSK |= (1<<INT0);
 }
 
 ISR(INT0_vect)
