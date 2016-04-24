@@ -166,12 +166,12 @@ retry_with_u2x:
 
   // bits == 0=8N1 1=8N2 2=8E1 3=8E2 4=8O1 5=8O2, rest undef.
   if (bits & 1) { // 2 stop bit mode
-    _UCSRxC |= _USBSx;
+    _UCSRxC |= (1 << _USBSx);
   }
-  if (bits > 2) { //parity enabled
-    _UCSRxC |= _UPMx1;
-    if (bits > 4) { // odd parity
-      _UCSRxC |= _UPMx0;
+  if (bits >= 2) { //parity enabled
+    _UCSRxC |= (1 << _UPMx1);
+    if (bits >= 4) { // odd parity
+      _UCSRxC |= (1 << _UPMx0);
     }
   }
 }
